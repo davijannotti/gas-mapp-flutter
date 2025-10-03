@@ -1,10 +1,13 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_map/flutter_map.dart';
-import 'package:location/location.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
 import '../widgets/map_widget.dart';
-import '../widgets/side_bar.dart';
 import '../widgets/search_bar.dart';
+import '../widgets/side_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   late final MapController _mapController;
   bool _isLoading = true;
   bool _permissionDenied = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -31,9 +35,40 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isLoading = true;
         _permissionDenied = false;
+        _errorMessage = null;
       });
     }
 
+    if (kIsWeb) {
+      await _getLocationByIp();
+    } else {
+      await _getDeviceLocation();
+    }
+  }
+
+  Future<void> _getLocationByIp() async {
+    try {
+      final response = await http.get(Uri.parse('https://ipapi.co/json/'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _currentLocation = LocationData.fromMap({
+              'latitude': data['latitude'],
+              'longitude': data['longitude'],
+            });
+            _isLoading = false;
+          });
+        }
+      } else {
+        _showError("It was not possible to get the location with IP address.");
+      }
+    } catch (e) {
+      _showError("Error obtaining location: $e");
+    }
+  }
+
+  Future<void> _getDeviceLocation() async {
     final location = Location();
     bool serviceEnabled;
     PermissionStatus permissionGranted;
@@ -42,11 +77,7 @@ class _HomePageState extends State<HomePage> {
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        _showError("The location service is deactivated.");
         return;
       }
     }
@@ -57,8 +88,8 @@ class _HomePageState extends State<HomePage> {
       if (permissionGranted != PermissionStatus.granted) {
         if (mounted) {
           setState(() {
-            _isLoading = false;
             _permissionDenied = true;
+            _isLoading = false;
           });
         }
         return;
@@ -74,12 +105,16 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } catch (e) {
-      debugPrint("Error getting location: $e");
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      _showError("Error to obtain the device location: $e");
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      setState(() {
+        _errorMessage = message;
+        _isLoading = false;
+      });
     }
   }
 
@@ -103,8 +138,31 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text("Buscando sua localização..."),
+            Text("Searching your location..."),
           ],
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, color: Colors.red),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _initializeLocation,
+                child: const Text('Try Again'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -117,19 +175,19 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'A permissão de localização foi negada.',
+                'The location permission was denied.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
-                'Por favor, habilite a permissão de localização para que o app possa mostrar sua posição no mapa.',
+                'Please, enable the location permission to allow the app to show your position in the map.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Conceder Permissão'),
+                child: const Text('Allow Permission'),
               ),
             ],
           ),
@@ -139,7 +197,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_currentLocation == null) {
       return const Center(
-        child: Text("Não foi possível obter sua localização."),
+        child: Text("It was not possible to obtain your location."),
       );
     }
 
