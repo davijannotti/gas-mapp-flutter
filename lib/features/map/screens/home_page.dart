@@ -66,10 +66,10 @@ class _HomePageState extends State<HomePage> {
           });
         }
       } else {
-        _showError("Não foi possível obter a localização a partir do IP.");
+        _showError("Could not get location from IP address.");
       }
     } catch (e) {
-      _showError("Erro ao obter a localização: $e");
+      _showError("Error getting location: $e");
     }
   }
 
@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        _showError("O serviço de localização está desativado.");
+        _showError("Location service is disabled.");
         return;
       }
     }
@@ -110,7 +110,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } catch (e) {
-      _showError("Erro ao obter a localização do dispositivo: $e");
+      _showError("Error getting device location: $e");
     }
   }
 
@@ -128,9 +128,9 @@ class _HomePageState extends State<HomePage> {
       _stationCounter++;
       _gasStations.add(
         GasStation(
-          name: 'Posto de Gasolina $_stationCounter',
+          name: 'Gas Station $_stationCounter',
           location: point,
-          prices: {'Gasolina': 5.59, 'Etanol': 3.69},
+          prices: {'Gasoline': 5.59, 'Ethanol': 3.69},
         ),
       );
     });
@@ -163,7 +163,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text("Buscando sua localização..."),
+            Text("Getting your location..."),
           ],
         ),
       );
@@ -184,7 +184,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Tentar Novamente'),
+                child: const Text('Try Again'),
               ),
             ],
           ),
@@ -200,19 +200,19 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'A permissão de localização foi negada.',
+                'Location permission has been denied.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
-                'Por favor, habilite a permissão de localização para que o app possa mostrar sua posição no mapa.',
+                'Please enable location permission to allow the app to show your position on the map.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Conceder Permissão'),
+                child: const Text('Grant Permission'),
               ),
             ],
           ),
@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_currentLocation == null) {
       return const Center(
-        child: Text("Não foi possível obter sua localização."),
+        child: Text("Could not get your location."),
       );
     }
 

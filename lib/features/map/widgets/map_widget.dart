@@ -49,7 +49,7 @@ class MapWidget extends StatelessWidget {
                 children: [
                   Icon(Icons.location_on, color: Colors.red, size: 40),
                   Text(
-                    'Você está aqui',
+                    'You are here',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
