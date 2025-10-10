@@ -5,6 +5,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import '../models/gas_station.dart';
+import '../widgets/gas_station_details.dart';
+import '../widgets/gas_station_marker.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/side_bar.dart';
@@ -22,6 +25,8 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   bool _permissionDenied = false;
   String? _errorMessage;
+  final List<GasStation> _gasStations = [];
+  int _stationCounter = 0;
 
   @override
   void initState() {
@@ -61,10 +66,10 @@ class _HomePageState extends State<HomePage> {
           });
         }
       } else {
-        _showError("It was not possible to get the location with IP address.");
+        _showError("Não foi possível obter a localização a partir do IP.");
       }
     } catch (e) {
-      _showError("Error obtaining location: $e");
+      _showError("Erro ao obter a localização: $e");
     }
   }
 
@@ -77,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        _showError("The location service is deactivated.");
+        _showError("O serviço de localização está desativado.");
         return;
       }
     }
@@ -105,7 +110,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } catch (e) {
-      _showError("Error to obtain the device location: $e");
+      _showError("Erro ao obter a localização do dispositivo: $e");
     }
   }
 
@@ -116,6 +121,26 @@ class _HomePageState extends State<HomePage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _addGasStation(LatLng point) {
+    setState(() {
+      _stationCounter++;
+      _gasStations.add(
+        GasStation(
+          name: 'Posto de Gasolina $_stationCounter',
+          location: point,
+          prices: {'Gasolina': 5.59, 'Etanol': 3.69},
+        ),
+      );
+    });
+  }
+
+  void _showGasStationDetails(GasStation station) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => GasStationDetails(gasStation: station),
+    );
   }
 
   @override
@@ -138,7 +163,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text("Searching your location..."),
+            Text("Buscando sua localização..."),
           ],
         ),
       );
@@ -159,7 +184,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Try Again'),
+                child: const Text('Tentar Novamente'),
               ),
             ],
           ),
@@ -175,19 +200,19 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'The location permission was denied.',
+                'A permissão de localização foi negada.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
-                'Please, enable the location permission to allow the app to show your position in the map.',
+                'Por favor, habilite a permissão de localização para que o app possa mostrar sua posição no mapa.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Allow Permission'),
+                child: const Text('Conceder Permissão'),
               ),
             ],
           ),
@@ -197,7 +222,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_currentLocation == null) {
       return const Center(
-        child: Text("It was not possible to obtain your location."),
+        child: Text("Não foi possível obter sua localização."),
       );
     }
 
@@ -209,6 +234,9 @@ class _HomePageState extends State<HomePage> {
             _currentLocation!.longitude!,
           ),
           mapController: _mapController,
+          gasStations: _gasStations,
+          onStationTapped: _showGasStationDetails,
+          onLongPress: _addGasStation,
         ),
         const SearchBar(),
         Positioned(

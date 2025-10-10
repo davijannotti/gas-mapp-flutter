@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../models/gas_station.dart';
+import 'gas_station_marker.dart';
 
 class MapWidget extends StatelessWidget {
   final LatLng initialCenter;
   final MapController mapController;
+  final List<GasStation> gasStations;
+  final Function(LatLng) onLongPress;
+  final Function(GasStation) onStationTapped;
 
   const MapWidget({
     super.key,
     required this.initialCenter,
     required this.mapController,
+    this.gasStations = const [],
+    required this.onLongPress,
+    required this.onStationTapped,
   });
 
   @override
@@ -19,6 +27,7 @@ class MapWidget extends StatelessWidget {
       options: MapOptions(
         initialCenter: initialCenter,
         initialZoom: 15.0,
+        onLongPress: (tapPosition, point) => onLongPress(point),
       ),
       children: [
         TileLayer(
@@ -40,7 +49,7 @@ class MapWidget extends StatelessWidget {
                 children: [
                   Icon(Icons.location_on, color: Colors.red, size: 40),
                   Text(
-                    'You are here',
+                    'Você está aqui',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
@@ -50,6 +59,16 @@ class MapWidget extends StatelessWidget {
                 ],
               ),
             ),
+            ...gasStations.map((station) {
+              return Marker(
+                width: 40,
+                height: 40,
+                point: station.location,
+                child: GasStationMarker(
+                  onTap: () => onStationTapped(station),
+                ),
+              );
+            }).toList(),
           ],
         ),
       ],
