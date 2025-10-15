@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
+import 'package:flutter_app/core/models/gas_station.dart';
+import 'package:flutter_app/core/services/gas_station_service.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
@@ -23,11 +25,24 @@ class _HomePageState extends State<HomePage> {
   bool _permissionDenied = false;
   String? _errorMessage;
 
+  List<GasStation> _stations = [];
+
   @override
   void initState() {
     super.initState();
+    _loadstations();
     _mapController = MapController();
     _initializeLocation();
+  }
+
+  Future<void> _loadstations() async{
+    final stations = await GasStationService().getGasStations();
+    print("Recebidos ${stations.length} postos!");
+    if(mounted){
+      setState(() {
+        _stations = stations;
+      });
+    }
   }
 
   Future<void> _initializeLocation() async {
@@ -209,6 +224,7 @@ class _HomePageState extends State<HomePage> {
             _currentLocation!.longitude!,
           ),
           mapController: _mapController,
+          gasStations: _stations,
         ),
         const SearchBar(),
         Positioned(

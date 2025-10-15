@@ -13,9 +13,9 @@ class Price {
 
   factory Price.fromJson(Map<String, dynamic> json) {
     return Price(
-      id: json['id'],
-      fuelId: json['fuelId'],
-      date: json['date'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
+      fuelId: json['fuelId'] is int ? json['fuelId'] : int.parse(json["fuelId"].toString()),
+      date: DateTime.parse(json['date']),
       price: (json['price'] as num).toDouble(),
     );
   }

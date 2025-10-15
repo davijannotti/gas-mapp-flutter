@@ -17,7 +17,7 @@ class GasStation {
 
   factory GasStation.fromJson(Map<String, dynamic> json) {
     return GasStation(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       name: json['name'],
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),

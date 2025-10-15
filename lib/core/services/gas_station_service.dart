@@ -3,16 +3,29 @@ import 'package:http/http.dart' as http;
 import '../models/gas_station.dart';
 
 class GasStationService {
-  final String baseUrl = 'http://localhost:8080/gasStations';
+  final String baseUrl = 'http://localhost:3000';
 
   Future<List<GasStation>> getGasStations() async {
-    final response = await http.get(Uri.parse(baseUrl));
+    final response = await http.get(Uri.parse('$baseUrl/gas_stations'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => GasStation.fromJson(json)).toList();
     } else {
       throw Exception('Fail to load gas stations');
+    }
+  }
+
+  Future<List<GasStation>> getNearbyStations(double lat, double lng) async {
+    final url = Uri.parse('$baseUrl/gas_stations/nearby?lat=$lat&lng=$lng');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => GasStation.fromJson(json)).toList();
+    } else {
+      throw Exception('Erro ao carregar postos: ${response.statusCode}');
     }
   }
 

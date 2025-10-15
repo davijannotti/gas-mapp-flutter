@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '/core/models/gas_station.dart';
 
 class MapWidget extends StatelessWidget {
   final LatLng initialCenter;
   final MapController mapController;
+  final List<GasStation> gasStations;
 
   const MapWidget({
     super.key,
     required this.initialCenter,
     required this.mapController,
+    required this.gasStations,
   });
 
   @override
@@ -49,6 +52,22 @@ class MapWidget extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            ...gasStations.map(
+                (station) => Marker(
+                    width: 80,
+                    height: 80,
+                    point: LatLng(station.latitude, station.longitude),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.local_gas_station, color: Colors.greenAccent, size: 30),
+                        Text(
+                          station.name,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                ),
             ),
           ],
         ),
