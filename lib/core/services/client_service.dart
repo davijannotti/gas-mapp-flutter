@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/client.dart';
 
 class ClientService {
-  final String baseUrl = 'http://localhost:8080/client';
+  final String baseUrl = 'http://localhost:8080/clients';
 
   Future<List<Client>> getClients() async {
     final response = await http.get(Uri.parse(baseUrl));
@@ -26,11 +26,11 @@ class ClientService {
     }
   }
 
-  Future<Client> createClient(Client gasStation) async {
+  Future<Client> createClient(Client client) async {
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(gasStation.toJson()),
+      body: jsonEncode(client.toJson()),
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
@@ -40,11 +40,11 @@ class ClientService {
     }
   }
 
-  Future<void> updateClient(Client gasStation) async {
+  Future<void> updateClient(Client client) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/${gasStation.id}'),
+      Uri.parse('$baseUrl/${client.id}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(gasStation.toJson()),
+      body: jsonEncode(client.toJson()),
     );
 
     if (response.statusCode != 200) {

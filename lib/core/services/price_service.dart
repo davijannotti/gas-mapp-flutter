@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/price.dart';
 
 class PriceService {
-  final String baseUrl = 'http://localhost:8080/gasStations/id/prices';
+  final String baseUrl = 'http://localhost:8080/prices';
 
   Future<Price> getPriceById(int id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
@@ -15,11 +15,11 @@ class PriceService {
     }
   }
 
-  Future<Price> createPrice(Price gasStation) async {
+  Future<Price> createPrice(Price price) async {
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(gasStation.toJson()),
+      body: jsonEncode(price.toJson()),
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {

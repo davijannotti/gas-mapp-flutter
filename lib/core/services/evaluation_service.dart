@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/evaluation.dart';
 
 class EvaluationService {
-  final String baseUrl = 'http://localhost:8080/evaluation/id/price/id/evaluation';
+  final String baseUrl = 'http://localhost:8080/evaluation';
 
   Future<List<Evaluation>> getEvaluations() async {
     final response = await http.get(Uri.parse(baseUrl));
