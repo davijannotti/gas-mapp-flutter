@@ -8,16 +8,12 @@ class MapWidget extends StatelessWidget {
   final LatLng initialCenter;
   final MapController mapController;
   final List<GasStation> gasStations;
-  final Function(LatLng) onLongPress;
-  final Function(GasStation) onStationTapped;
 
   const MapWidget({
     super.key,
     required this.initialCenter,
     required this.mapController,
-    this.gasStations = const [],
-    required this.onLongPress,
-    required this.onStationTapped,
+    required this.gasStations,
   });
 
   @override
@@ -59,16 +55,22 @@ class MapWidget extends StatelessWidget {
                 ],
               ),
             ),
-            ...gasStations.map((station) {
-              return Marker(
-                width: 40,
-                height: 40,
-                point: station.location,
-                child: GasStationMarker(
-                  onTap: () => onStationTapped(station),
+            ...gasStations.map(
+                (station) => Marker(
+                    width: 80,
+                    height: 80,
+                    point: LatLng(station.latitude, station.longitude),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.local_gas_station, color: Colors.greenAccent, size: 30),
+                        Text(
+                          station.name,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
                 ),
-              );
-            }).toList(),
+            ),
           ],
         ),
       ],
