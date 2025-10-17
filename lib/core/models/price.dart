@@ -1,31 +1,33 @@
 class Price {
-  int id;
-  int fuelId;
-  DateTime date;
-  double price;
+  final int? id;
+  final int fuelId;
+  final int clientId;
+  final DateTime? date;
+  final double price;
 
   Price({
-    required this.id,
+    this.id,
     required this.fuelId,
-    required this.date,
+    required this.clientId,
+    this.date,
     required this.price,
   });
 
   factory Price.fromJson(Map<String, dynamic> json) {
     return Price(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      fuelId: json['fuelId'] is int ? json['fuelId'] : int.parse(json["fuelId"].toString()),
-      date: DateTime.parse(json['date']),
-      price: (json['price'] as num).toDouble(),
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString() ?? ''),
+      fuelId: json['fuel']?['id'] is int ? json['fuel']['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      clientId: json['client']?['id'] is int ? json['client']['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      date: json['date'] != null ? DateTime.parse(json['date']) : null,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'fuelId': fuelId,
-      'date': date,
       'price': price,
+      'fuel': {'id': fuelId},
+      'client': {'id': clientId},
     };
   }
 }
