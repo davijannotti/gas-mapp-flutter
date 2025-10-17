@@ -1,16 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
-import 'package:flutter_app/core/models/gas_station.dart';
-import 'package:flutter_app/core/services/gas_station_service.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
-import '../models/gas_station.dart';
+import '../../../core/models/gas_station.dart';
+import '../../../core/models/price.dart';
+import '../../../core/services/gas_station_service.dart';
+import '../../../core/services/price_service.dart';
 import '../widgets/gas_station_details.dart';
 import '../widgets/gas_station_marker.dart';
 import '../widgets/map_widget.dart';
+import '../widgets/price_form_modal.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/side_bar.dart';
 
@@ -22,32 +24,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GasStationService _gasStationService = GasStationService();
+  final PriceService _priceService = PriceService();
   LocationData? _currentLocation;
   late final MapController _mapController;
   bool _isLoading = true;
   bool _permissionDenied = false;
   String? _errorMessage;
-  final List<GasStation> _gasStations = [];
-  int _stationCounter = 0;
-
-  List<GasStation> _stations = [];
+  List<GasStation> _gasStations = [];
 
   @override
   void initState() {
     super.initState();
-    _loadstations();
     _mapController = MapController();
     _initializeLocation();
-  }
-
-  Future<void> _loadstations() async{
-    final stations = await GasStationService().getGasStations();
-    print("Recebidos ${stations.length} postos!");
-    if(mounted){
-      setState(() {
-        _stations = stations;
-      });
-    }
   }
 
   Future<void> _initializeLocation() async {
@@ -66,19 +56,33 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _fetchNearbyStations(LatLng location) async {
+    try {
+      final stations = await _gasStationService.getGasStations(
+      );
+      setState(() {
+        _gasStations = stations;
+      });
+    } catch (e) {
+      _showError("Could not fetch nearby stations: $e");
+    }
+  }
+
   Future<void> _getLocationByIp() async {
     try {
       final response = await http.get(Uri.parse('https://ipapi.co/json/'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (mounted) {
+          final location = LatLng(data['latitude'], data['longitude']);
           setState(() {
             _currentLocation = LocationData.fromMap({
-              'latitude': data['latitude'],
-              'longitude': data['longitude'],
+              'latitude': location.latitude,
+              'longitude': location.longitude,
             });
             _isLoading = false;
           });
+          await _fetchNearbyStations(location);
         }
       } else {
         _showError("Could not get location from IP address.");
@@ -119,10 +123,12 @@ class _HomePageState extends State<HomePage> {
     try {
       final currentLocation = await location.getLocation();
       if (mounted) {
+        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!);
         setState(() {
           _currentLocation = currentLocation;
           _isLoading = false;
         });
+        await _fetchNearbyStations(location);
       }
     } catch (e) {
       _showError("Error getting device location: $e");
@@ -138,23 +144,57 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _addGasStation(LatLng point) {
-    setState(() {
-      _stationCounter++;
-      _gasStations.add(
-        GasStation(
-          name: 'Gas Station $_stationCounter',
-          location: point,
-          prices: {'Gasoline': 5.59, 'Ethanol': 3.69},
-        ),
-      );
-    });
+  void _showAddPriceForm(GasStation station) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => PriceFormModal(
+        stationId: station.id.toString(),
+        onSubmit: (String stationId, String fuelType, double price) async {
+          try {
+            final newPrice = Price(
+              id: 0, // The backend will assign the ID
+              fuelId: 0, // The backend should handle this based on fuelType and stationId
+              date: DateTime.now(),
+              price: price,
+            );
+            await _priceService.createPrice(newPrice);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Price added successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Refresh data
+            if (_currentLocation != null) {
+              await _fetchNearbyStations(LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!));
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error adding price: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   void _showGasStationDetails(GasStation station) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => GasStationDetails(gasStation: station),
+      builder: (context) => GasStationDetails(
+        gasStation: station,
+        onAddPrice: () {
+          Navigator.of(context).pop();
+          _showAddPriceForm(station);
+        },
+        onTakePhoto: () {
+          // TODO: Implement take photo
+        },
+      ),
     );
   }
 
@@ -249,7 +289,8 @@ class _HomePageState extends State<HomePage> {
             _currentLocation!.longitude!,
           ),
           mapController: _mapController,
-          gasStations: _stations,
+          gasStations: _gasStations,
+          onStationTapped: _showGasStationDetails,
         ),
         const SearchBar(),
         Positioned(

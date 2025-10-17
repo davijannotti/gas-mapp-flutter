@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/gas_station.dart';
+import '../../../core/models/gas_station.dart';
 import 'gas_station_marker.dart';
 
 class MapWidget extends StatelessWidget {
   final LatLng initialCenter;
   final MapController mapController;
   final List<GasStation> gasStations;
+  final Function(GasStation) onStationTapped;
 
   const MapWidget({
     super.key,
     required this.initialCenter,
     required this.mapController,
-    required this.gasStations,
+    this.gasStations = const [],
+    required this.onStationTapped,
   });
 
   @override
@@ -23,7 +25,6 @@ class MapWidget extends StatelessWidget {
       options: MapOptions(
         initialCenter: initialCenter,
         initialZoom: 15.0,
-        onLongPress: (tapPosition, point) => onLongPress(point),
       ),
       children: [
         TileLayer(
@@ -55,22 +56,16 @@ class MapWidget extends StatelessWidget {
                 ],
               ),
             ),
-            ...gasStations.map(
-                (station) => Marker(
-                    width: 80,
-                    height: 80,
-                    point: LatLng(station.latitude, station.longitude),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.local_gas_station, color: Colors.greenAccent, size: 30),
-                        Text(
-                          station.name,
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                      ],
-                    ),
+            ...gasStations.map((station) {
+              return Marker(
+                width: 40,
+                height: 40,
+                point: LatLng(station.latitude, station.longitude),
+                child: GasStationMarker(
+                  onTap: () => onStationTapped(station),
                 ),
-            ),
+              );
+            }).toList(),
           ],
         ),
       ],

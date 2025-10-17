@@ -7,7 +7,7 @@ class GasStationService {
 
   Future<List<GasStation>> getGasStations() async {
     final response = await http.get(Uri.parse(baseUrl));
-
+    print(response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => GasStation.fromJson(json)).toList();
