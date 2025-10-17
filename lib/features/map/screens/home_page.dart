@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart' as permission_handler;
 import '../../../core/models/gas_station.dart';
 import '../../../core/models/price.dart';
 import '../../../core/services/gas_station_service.dart';
@@ -58,11 +60,15 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchNearbyStations(LatLng location) async {
     try {
-      final stations = await _gasStationService.getGasStations(
+      final stations = await _gasStationService.getNearbyStations(
+        location.latitude,
+        location.longitude,
       );
-      setState(() {
-        _gasStations = stations;
-      });
+      if (mounted) {
+        setState(() {
+          _gasStations = stations;
+        });
+      }
     } catch (e) {
       _showError("Could not fetch nearby stations: $e");
     }
@@ -182,6 +188,80 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+ Future<void> _handlePhotoUpload(int stationId) async {
+    var status = await permission_handler.Permission.camera.status;
+
+    // If permission is not granted, request it.
+    if (!status.isGranted) {
+      status = await permission_handler.Permission.camera.request();
+    }
+
+    if (status.isGranted) {
+      // Permission is granted, proceed to pick image.
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+      if (image != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Uploading photo...')),
+        );
+        try {
+          // TODO: The 'uploadPricePhoto' method is not available in the provided services.
+          // This needs to be implemented in one of the service files by your friend.
+          // await _gasStationService.uploadPricePhoto(stationId, image.path);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo uploaded successfully! (DEMO)'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Photo upload failed: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } else if (status.isPermanentlyDenied) {
+      // The user permanently denied the permission, show a dialog to open settings.
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Camera Permission'),
+            content: const Text('Camera permission is permanently denied. Please go to app settings to enable it.'),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              TextButton(
+                child: const Text('Open Settings'),
+                onPressed: () {
+                  permission_handler.openAppSettings();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      // The user denied the permission, show a snackbar.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Camera permission is required to take a photo.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
   void _showGasStationDetails(GasStation station) {
     showModalBottomSheet(
       context: context,
@@ -192,7 +272,8 @@ class _HomePageState extends State<HomePage> {
           _showAddPriceForm(station);
         },
         onTakePhoto: () {
-          // TODO: Implement take photo
+          Navigator.of(context).pop();
+          _handlePhotoUpload(station.id!);
         },
       ),
     );
