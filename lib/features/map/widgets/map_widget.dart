@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '/core/models/gas_station.dart';
+import '../models/gas_station.dart';
+import 'gas_station_marker.dart';
 
 class MapWidget extends StatelessWidget {
   final LatLng initialCenter;
@@ -22,6 +23,7 @@ class MapWidget extends StatelessWidget {
       options: MapOptions(
         initialCenter: initialCenter,
         initialZoom: 15.0,
+        onLongPress: (tapPosition, point) => onLongPress(point),
       ),
       children: [
         TileLayer(
