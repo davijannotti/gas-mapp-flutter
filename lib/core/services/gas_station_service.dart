@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/gas_station.dart';
 
 class GasStationService {
-  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/gas_stations';
+  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/gasstations';
 
   Future<List<GasStation>> getGasStations() async {
     final response = await http.get(Uri.parse(baseUrl));
