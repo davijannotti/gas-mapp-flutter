@@ -1,27 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/gas_station.dart';
+import 'auth_helper.dart';
 
 class GasStationService {
   final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/gasstations';
 
-  // --- NEW: Authentication Headers ---
-  Map<String, String> _getAuthHeaders() {
-    final username = 'admin';
-    final password = 'admin';
-    // Encode the username and password in Base64
-    final credentials = base64Encode(utf8.encode('$username:$password'));
-
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Basic $credentials',
-    };
-  }
-
   Future<List<GasStation>> getGasStations() async {
     // Add headers to the request
-    final response = await http.get(Uri.parse(baseUrl), headers: _getAuthHeaders());
-    print(response.body);
+    final response = await http.get(Uri.parse(baseUrl), headers: createAuthHeaders());
+
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => GasStation.fromJson(json)).toList();
@@ -34,7 +22,7 @@ class GasStationService {
     final url = Uri.parse('$baseUrl/nearby?lat=$lat&lng=$lng');
 
     // Add headers to the request
-    final response = await http.get(url, headers: _getAuthHeaders());
+    final response = await http.get(url, headers: createAuthHeaders());
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -46,7 +34,7 @@ class GasStationService {
 
   Future<GasStation> getGasStationById(int id) async {
     // Add headers to the request
-    final response = await http.get(Uri.parse('$baseUrl/$id'), headers: _getAuthHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/$id'), headers: createAuthHeaders());
 
     if (response.statusCode == 200) {
       return GasStation.fromJson(jsonDecode(response.body));
@@ -59,7 +47,7 @@ class GasStationService {
     final response = await http.post(
       Uri.parse(baseUrl),
       // Use the helper method for headers
-      headers: _getAuthHeaders(),
+      headers: createAuthHeaders(),
       body: jsonEncode(gasStation.toJson()),
     );
 
@@ -74,7 +62,7 @@ class GasStationService {
     final response = await http.put(
       Uri.parse('$baseUrl/${gasStation.id}'),
       // Use the helper method for headers
-      headers: _getAuthHeaders(),
+      headers: createAuthHeaders(),
       body: jsonEncode(gasStation.toJson()),
     );
 
@@ -85,7 +73,7 @@ class GasStationService {
 
   Future<void> deleteGasStation(int id) async {
     // Add headers to the request
-    final response = await http.delete(Uri.parse('$baseUrl/$id'), headers: _getAuthHeaders());
+    final response = await http.delete(Uri.parse('$baseUrl/$id'), headers: createAuthHeaders());
 
     if (response.statusCode != 204 && response.statusCode != 200) {
       throw Exception('Failed to delete gas station: ${response.statusCode}');
