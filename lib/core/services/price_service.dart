@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/price.dart';
 
 class PriceService {
-  final String baseUrl = 'http://localhost:8080/prices';
+  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/prices';
 
   Future<Price> getPriceById(int id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
