@@ -6,7 +6,7 @@ import 'auth_helper.dart';
 import 'fuel_service.dart';
 
 class PriceService {
-  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/prices';
+  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/prices';
   final FuelService fuelService = FuelService();
 
   Future<Price> createPrice({

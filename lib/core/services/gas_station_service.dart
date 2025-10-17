@@ -4,7 +4,7 @@ import '../models/gas_station.dart';
 import 'auth_helper.dart';
 
 class GasStationService {
-  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/gasstations';
+  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/gasstations';
 
   Future<List<GasStation>> getGasStations() async {
     // Add headers to the request

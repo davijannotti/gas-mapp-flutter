@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// A callback function to pass the submitted data back to the home page
-typedef PriceSubmitCallback = void Function(String stationId, String fuelType, double price);
+// The callback function expects an integer for the stationId.
+typedef PriceSubmitCallback = void Function(int stationId, String fuelName, double priceValue);
 
 class PriceFormModal extends StatefulWidget {
-  final String stationId;
+  // Changed stationId to be an int to match the callback and the data model.
+  final int stationId;
   final PriceSubmitCallback onSubmit;
 
   const PriceFormModal({
@@ -20,10 +21,12 @@ class PriceFormModal extends StatefulWidget {
 
 class _PriceFormModalState extends State<PriceFormModal> {
   final _formKey = GlobalKey<FormState>();
-  String _selectedFuelType = 'Gasoline'; // Default value
+  // Renamed for clarity and consistency.
+  String _selectedFuelName = 'Gasoline'; // Default value
   final _priceController = TextEditingController();
 
-  final List<String> _fuelTypes = ['Gasoline', 'Ethanol', 'Diesel'];
+  // Renamed for clarity.
+  final List<String> _fuelNames = ['Gasoline', 'Ethanol', 'Diesel'];
 
   @override
   void dispose() {
@@ -32,25 +35,39 @@ class _PriceFormModalState extends State<PriceFormModal> {
   }
 
   void _submitForm() {
+    // Validate the form before processing.
     if (_formKey.currentState!.validate()) {
       final price = double.tryParse(_priceController.text);
+
       if (price != null) {
-        // Call the callback with the form data
-        widget.onSubmit(widget.stationId, _selectedFuelType, price);
-        Navigator.of(context).pop(); // Close the modal on success
+        // Call the callback with the correct data types.
+        widget.onSubmit(widget.stationId, _selectedFuelName, price);
+
+        // Close the modal on successful submission.
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Making sure the modal doesn't get covered by the keyboard
-    return Padding(
+    // Wrap the form in a decorated container to give it a better look and feel.
+    return Container(
+      // This padding ensures the content is not hidden by the keyboard.
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
         left: 20,
         right: 20,
         top: 20,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
       child: Form(
         key: _formKey,
@@ -62,8 +79,8 @@ class _PriceFormModalState extends State<PriceFormModal> {
             const SizedBox(height: 24),
             // Fuel Type Dropdown
             DropdownButtonFormField<String>(
-              value: _selectedFuelType,
-              items: _fuelTypes.map((String value) {
+              value: _selectedFuelName,
+              items: _fuelNames.map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -71,7 +88,7 @@ class _PriceFormModalState extends State<PriceFormModal> {
               }).toList(),
               onChanged: (newValue) {
                 setState(() {
-                  _selectedFuelType = newValue!;
+                  _selectedFuelName = newValue!;
                 });
               },
               decoration: const InputDecoration(
@@ -85,18 +102,21 @@ class _PriceFormModalState extends State<PriceFormModal> {
               controller: _priceController,
               decoration: const InputDecoration(
                 labelText: 'Price',
-                prefixText: '\$ ',
+                // Using a more generic currency symbol.
+                prefixText: 'R\$ ',
                 border: OutlineInputBorder(),
               ),
+              // Using a regex that supports comma as a decimal separator.
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+[,.]?\d{0,3}')),
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a price';
                 }
-                if (double.tryParse(value) == null) {
+                // Handle both dot and comma for validation.
+                if (double.tryParse(value.replaceAll(',', '.')) == null) {
                   return 'Please enter a valid number';
                 }
                 return null;
@@ -106,11 +126,13 @@ class _PriceFormModalState extends State<PriceFormModal> {
             // Submit Button
             SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton(
                 onPressed: _submitForm,
                 child: const Text('Submit Price'),
               ),
-            )
+            ),
+            const SizedBox(height: 10), // Added some padding at the bottom
           ],
         ),
       ),

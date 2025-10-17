@@ -4,7 +4,7 @@ import '../models/fuel.dart';
 import 'auth_helper.dart';
 
 class FuelService {
-  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/fuels';
+  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/fuels';
 
   // Busca combustível por ID
   Future<Fuel> getFuelById(int id) async {
@@ -43,6 +43,7 @@ class FuelService {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
+      print(data);
       if (data.isNotEmpty) {
         return Fuel.fromJson(data.first); // pega o primeiro resultado
       } else {

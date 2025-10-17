@@ -12,7 +12,6 @@ import '../../../core/models/price.dart';
 import '../../../core/services/gas_station_service.dart';
 import '../../../core/services/price_service.dart';
 import '../widgets/gas_station_details.dart';
-import '../widgets/gas_station_marker.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/price_form_modal.dart';
 import '../widgets/search_bar.dart';
@@ -154,26 +153,30 @@ class _HomePageState extends State<HomePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent, // Make modal background transparent
       builder: (context) => PriceFormModal(
-        stationId: station.id.toString(),
-        onSubmit: (String stationId, String fuelType, double price) async {
+        stationId: station.id!, // Use the non-nullable ID here.
+        onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
-            final newPrice = Price(
-              id: 0, // The backend will assign the ID
-              fuelId: 0, // The backend should handle this based on fuelType and stationId
-              date: DateTime.now(),
-              price: price,
+            // TODO: Replace 'clientId: 1' with the actual ID of the logged-in user.
+            await _priceService.createPrice(
+              gasStationId: stationId,
+              fuelName: fuelName,
+              clientId: 1, // Using 1 as a placeholder for the logged-in user's ID
+              priceValue: priceValue,
             );
-            await _priceService.createPrice(newPrice);
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Price added successfully!'),
                 backgroundColor: Colors.green,
               ),
             );
-            // Refresh data
+
+            // Refresh station data to show the new price
             if (_currentLocation != null) {
-              await _fetchNearbyStations(LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!));
+              await _fetchNearbyStations(LatLng(
+                  _currentLocation!.latitude!, _currentLocation!.longitude!));
             }
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -188,7 +191,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
- Future<void> _handlePhotoUpload(int stationId) async {
+
+  Future<void> _handlePhotoUpload(int stationId) async {
     var status = await permission_handler.Permission.camera.status;
 
     // If permission is not granted, request it.

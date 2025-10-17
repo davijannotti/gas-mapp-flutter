@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/gas_station.dart';
+import '../../../core/models/fuel.dart'; // Import the correct Fuel model
 
 class GasStationDetails extends StatelessWidget {
   final GasStation gasStation;
@@ -15,60 +16,86 @@ class GasStationDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            gasStation.name,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          if (gasStation.fuel.isEmpty)
-            const Text('No price information available.')
-          else
-            ...gasStation.fuel.map((fuel) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(fuel.name, style: const TextStyle(fontSize: 16)),
-                    Text('\$${fuel.price.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              );
-            }).toList(),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onAddPrice,
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: const Text('Add Price'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+    // A wrapper to give the bottom sheet rounded corners and a background color.
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              gasStation.name,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            // Use the 'fuel' property from your GasStation model
+            if (gasStation.fuel.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text('No price information available.'),
+              )
+            else
+            // Iterate through the list of 'fuel' objects
+              ...gasStation.fuel.map((fuel) {
+                // Safely cast price to num, providing a default value if null
+                final num price = (fuel.price as num?) ?? 0.0;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Access the name from the 'fuel' object
+                      Text(fuel.name, style: const TextStyle(fontSize: 16)),
+                      // Access the price from the 'fuel' object
+                      Text(
+                        // FIX: Use the safely casted 'price' variable
+                        'R\$ ${price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onAddPrice,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add Price'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onTakePhoto,
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Take Photo'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onTakePhoto,
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Take Photo'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-        ],
+              ],
+            ),
+            // Added safe area padding for the bottom.
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
+          ],
+        ),
       ),
     );
   }
