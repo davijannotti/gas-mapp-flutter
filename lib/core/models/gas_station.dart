@@ -1,4 +1,5 @@
 import 'fuel.dart';
+import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class GasStation {
   final int? id;
@@ -16,6 +17,7 @@ class GasStation {
   });
 
   factory GasStation.fromJson(Map<String, dynamic> json) {
+    // debugPrint('GasStation.fromJson received: $json'); // Debug print removed
     return GasStation(
       id: json['id'] != null
           ? (json['id'] is int
@@ -31,7 +33,7 @@ class GasStation {
           ? (json['longitude'] as num).toDouble()
           : 0.0,
 
-      fuel: (json['fuels'] as List<dynamic>?)
+      fuel: (json['fuels'] as List<dynamic>?) // This is where Fuel.fromJson is called
           ?.map((c) => Fuel.fromJson(c))
           .toList() ??
           [],

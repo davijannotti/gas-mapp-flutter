@@ -45,8 +45,8 @@ class GasStationDetails extends StatelessWidget {
             else
             // Iterate through the list of 'fuel' objects
               ...(gasStation.fuel ?? []).map((fuel) {
-                // Safely cast price to num, providing a default value if null
-                final num price = (fuel.price as num?) ?? 0.0;
+                // Safely access the price value from the Price object
+                final double? priceValue = fuel.price?.price;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -57,8 +57,8 @@ class GasStationDetails extends StatelessWidget {
                       Text(fuel.name, style: const TextStyle(fontSize: 16)),
                       // Access the price from the 'fuel' object
                       Text(
-                        // FIX: Use the safely casted 'price' variable
-                        'R\$ ${price.toStringAsFixed(2)}',
+                        // Display the price or 'N/A' if null
+                        'R\$ ${priceValue?.toStringAsFixed(2) ?? 'N/A'}',
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
