@@ -1,46 +1,58 @@
-import 'gas_station.dart'; // Adicione a importação para o modelo GasStation
+import 'gas_station.dart';
 import 'price.dart';
+import 'package:flutter/foundation.dart';
 
 class Fuel {
   final int? id;
-  final GasStation gasStation; // Alterado de gasStationId para GasStation
+  final GasStation gasStation;
   final String name;
   final DateTime? date;
   final Price? price;
 
   Fuel({
     this.id,
-    required this.gasStation, // Construtor agora requer um objeto GasStation
+    required this.gasStation,
     required this.name,
     this.date,
     this.price,
   });
 
-  // Factory para criar uma instância a partir de um JSON
   factory Fuel.fromJson(Map<String, dynamic> json) {
-    // If gasStation is null or missing, create a default GasStation
     final gasStationData = json['gasStation'];
     final GasStation parsedGasStation = gasStationData != null
         ? GasStation.fromJson(gasStationData)
-        : GasStation(id: null, name: 'Unknown', latitude: 0.0, longitude: 0.0); // Provide a default GasStation
+        : GasStation(id: null, name: 'Unknown', latitude: 0.0, longitude: 0.0);
+
+    Price? latestPrice;
+    if (json['prices'] is List && (json['prices'] as List).isNotEmpty) {
+      List<dynamic> pricesJson = json['prices'] as List<dynamic>;
+
+      pricesJson.sort((a, b) {
+        final DateTime dateA = DateTime.parse(a['createdAt']);
+        final DateTime dateB = DateTime.parse(b['createdAt']);
+        return dateB.compareTo(dateA);
+      });
+
+      latestPrice = Price.fromJson(pricesJson.first);
+    }
 
     return Fuel(
-      id: json['id'],
-      gasStation: parsedGasStation, // Use the parsed or default GasStation
+      id: json['id'] != null
+          ? (json['id'] is int
+              ? json['id']
+              : int.tryParse(json['id'].toString()))
+          : null,
+      gasStation: parsedGasStation,
       name: json['name'] ?? 'Sem nome',
-      date: json['date'] != null ? DateTime.parse(json['date']) : null,
-      price: json['price'] != null ? Price.fromJson(json['price']) : null,
+      date: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      price: latestPrice,
     );
   }
 
-  // Método para converter a instância em um JSON
   Map<String, dynamic> toJson() {
-    // O backend espera um objeto aninhado para o posto
     return {
       'name': name,
-      'gasStation': {'id': gasStation.id}, // Changed to send only the ID
+      'gasStation': {'id': gasStation.id},
     };
-    // Note que os campos 'id', 'date' e 'price' não são enviados na criação,
-    // pois são gerenciados pelo backend.
   }
 }

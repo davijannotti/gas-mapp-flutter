@@ -1,12 +1,14 @@
 import 'client.dart';
 import 'fuel.dart';
+import 'gas_station.dart'; // ADDED THIS IMPORT
+import 'package:flutter/foundation.dart';
 
 class Price {
   final int? id;
   final Fuel fuel;
   final Client client;
   final DateTime? date;
-  final double price;
+  final double? price;
 
   Price({
     this.id,
@@ -17,16 +19,36 @@ class Price {
   });
 
   factory Price.fromJson(Map<String, dynamic> json) {
+    debugPrint('Price.fromJson received: $json');
+    debugPrint('Price.fromJson - json[\'fuel\']: ${json['fuel']}');
+    debugPrint('Price.fromJson - json[\'client\']: ${json['client']}');
+
+    // Handle fuel
+    final fuelData = json['fuel'];
+    final Fuel parsedFuel = fuelData != null
+        ? Fuel.fromJson(fuelData)
+        : Fuel(
+            id: null, // Fuel.id is nullable
+            name: 'Unknown Fuel',
+            gasStation: GasStation(id: null, name: 'Unknown Gas Station', latitude: 0.0, longitude: 0.0), // GasStation.id is nullable
+          );
+
+    // Handle client
+    final clientData = json['client'];
+    final Client parsedClient = clientData != null
+        ? Client.fromJson(clientData)
+        : Client(id: 0, email: 'unknown@example.com', name: 'Unknown Client', password: ''); // Client.id is int, so use 0
+
     return Price(
       id: json['id'] != null
           ? (json['id'] is int
               ? json['id']
               : int.tryParse(json['id'].toString()))
           : null,
-      fuel: Fuel.fromJson(json['fuel']),
-      client: Client.fromJson(json['client']),
-      date: json['date'] != null ? DateTime.parse(json['date']) : null,
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      fuel: parsedFuel,
+      client: parsedClient,
+      date: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      price: (json['price'] as num?)?.toDouble(),
     );
   }
 

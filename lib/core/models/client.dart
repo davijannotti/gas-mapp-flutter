@@ -13,7 +13,11 @@ class Client {
 
   factory Client.fromJson(Map<String, dynamic> json) {
     return Client(
-      id: json['id'],
+      id: json['id'] != null
+          ? (json['id'] is int
+              ? json['id']
+              : int.tryParse(json['id'].toString()) ?? 0)
+          : 0,
       email: json['email'],
       name: json['name'],
       password: json['password'],
