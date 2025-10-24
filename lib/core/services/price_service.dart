@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:flutter_app/core/models/gas_station.dart';
 import 'package:http/http.dart' as http;
 import '../models/price.dart';
 import '../models/fuel.dart';
+import '../models/client.dart';
+import '../models/gas_station.dart';
 import 'auth_helper.dart';
 import 'fuel_service.dart';
 
@@ -11,26 +12,13 @@ class PriceService {
   final FuelService fuelService = FuelService();
 
   Future<Price> createPrice({
-    required int gasStationId,
-    required String fuelName,
-    required int clientId,
+    required Fuel fuel,
+    required Client client,
     required double priceValue,
   }) async {
-    Fuel? fuel = await fuelService.getFuelByName(gasStationId, fuelName);
-    final gasStation = GasStation(id: gasStationId);
-    if (fuel == null) {
-      final newFuel = Fuel(
-        gasStation: gasStation,
-        name: fuelName,
-        price: null,
-      );
-      fuel = await fuelService.createFuel(newFuel);
-    }
-    print("RESPOSTA DA REQUISICAO:  ");
-    print(fuel);
     final price = Price(
-      fuelId: fuel.id ?? 0,
-      clientId: clientId,
+      fuel: fuel,
+      client: client,
       price: priceValue,
     );
 

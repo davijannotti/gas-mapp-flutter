@@ -27,6 +27,9 @@ class FuelService {
       headers: createAuthHeaders(),
       body: jsonEncode(fuel.toJson()),
     );
+    print("RESPOSTA DO CREATE FUEL");
+    print(response.body);
+    print(fuel.toJson());
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Fuel.fromJson(jsonDecode(response.body));
@@ -36,30 +39,13 @@ class FuelService {
   }
 
 
-  Future<Fuel?> getFuelByName(int gasStationId, String fuelName) async {
-    final url = Uri.parse('$gasStationsUrl/$gasStationId');
-    final response = await http.get(url, headers: createAuthHeaders());
-
-    if (response.statusCode == 200) {
-
-      final json = jsonDecode(response.body);
-      final gasStation = GasStation.fromJson(json);
-
-
-      try{
-        return gasStation.fuel?.firstWhere(
-              (f) => f.name.toLowerCase() == fuelName.toLowerCase(),
-        );
-      } catch (e) {
-        return null;
-      }
-
-
-
-    } else {
-      throw Exception(
-        'Failed to get gas station ($gasStationId): ${response.statusCode}\n${response.body}',
+  Future<Fuel?> getFuelByName(GasStation gasStation, String fuelName) async {
+    try{
+      return gasStation.fuel?.firstWhere(
+            (f) => f.name.toLowerCase() == fuelName.toLowerCase(),
       );
+    } catch (e) {
+      return null;
     }
   }
 }

@@ -18,14 +18,15 @@ class Fuel {
 
   // Factory para criar uma instância a partir de um JSON
   factory Fuel.fromJson(Map<String, dynamic> json) {
-    // Verifica se o campo 'gasStation' existe e não é nulo antes de criar o objeto
-    if (json['gasStation'] == null) {
-      throw Exception('Dados do posto de gasolina ausentes no JSON');
-    }
+    // If gasStation is null or missing, create a default GasStation
+    final gasStationData = json['gasStation'];
+    final GasStation parsedGasStation = gasStationData != null
+        ? GasStation.fromJson(gasStationData)
+        : GasStation(id: null, name: 'Unknown', latitude: 0.0, longitude: 0.0); // Provide a default GasStation
 
     return Fuel(
       id: json['id'],
-      gasStation: GasStation.fromJson(json['gasStation']), // Converte o JSON aninhado
+      gasStation: parsedGasStation, // Use the parsed or default GasStation
       name: json['name'] ?? 'Sem nome',
       date: json['date'] != null ? DateTime.parse(json['date']) : null,
       price: json['price'] != null ? Price.fromJson(json['price']) : null,
@@ -37,7 +38,7 @@ class Fuel {
     // O backend espera um objeto aninhado para o posto
     return {
       'name': name,
-      'gasStation': gasStation.toJson(), // Converte o objeto GasStation em JSON
+      'gasStation': {'id': gasStation.id}, // Changed to send only the ID
     };
     // Note que os campos 'id', 'date' e 'price' não são enviados na criação,
     // pois são gerenciados pelo backend.

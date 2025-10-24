@@ -22,11 +22,11 @@ class PriceFormModal extends StatefulWidget {
 class _PriceFormModalState extends State<PriceFormModal> {
   final _formKey = GlobalKey<FormState>();
   // Renamed for clarity and consistency.
-  String _selectedFuelName = 'Gasoline'; // Default value
+  String _selectedFuelName = 'Gasolina'; // Default value
   final _priceController = TextEditingController();
 
   // Renamed for clarity.
-  final List<String> _fuelNames = ['Gasoline', 'Ethanol', 'Diesel'];
+  final List<String> _fuelNames = ['Gasolina', 'Etanol', 'Diesel'];
 
   @override
   void dispose() {
