@@ -1,9 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_app/core/services/auth_helper.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'auth_helper.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+
 
 class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/auth';
+  final _storage = const FlutterSecureStorage();
 
   Stream<GoogleSignInAccount?> get onCurrentUserChanged => _googleSignIn.onCurrentUserChanged;
 
@@ -14,44 +23,55 @@ class AuthService {
   Future<void> signIn() async {
     try {
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return;
-      }
+      if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
 
-      // --- HANDOFF FOR YOUR FRIEND ---
-      // TODO: Send this 'idToken' to your backend to exchange for a Keycloak token.
-      // Your friend's code will go here. For example:
-      /*
+      debugPrint('Google ID Token: $idToken');
+
       final response = await http.post(
-        Uri.parse('YOUR_BACKEND_ENDPOINT/auth/google'),
+        Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'token': idToken}),
+        body: jsonEncode({'token': idToken}),
       );
 
       if (response.statusCode == 200) {
-        final keycloakToken = json.decode(response.body)['access_token'];
-        // Store the token securely and update the app state
+        final data = jsonDecode(response.body);
+        final accessToken = data['access_token'];
+        debugPrint('Keycloak Token: $accessToken');
       } else {
-        // Handle login error with the backend
+        debugPrint('Login error: ${response.statusCode}');
         _googleSignIn.signOut();
       }
-      */
-      // For now, we'll just print the token for verification.
-      debugPrint('Google ID Token: $idToken');
-      // --- END OF HANDOFF ---
-
     } catch (error) {
       debugPrint('Error signing in: $error');
     }
   }
 
-  Future<void> signOut() {
-    // TODO: Your friend should also consider implementing a call to the backend
-    // to invalidate the Keycloak session if necessary.
-    return _googleSignIn.signOut();
-  }
+  Future<void> signOut() async{
+    try {
+      await _googleSignIn.signOut();
+
+      await _storage.delay.delete(key: 'access_token');
+
+      try {
+        final token = await _storage.read(key: 'access_token');
+        if (token != null){
+          await http.post(
+            Uri.parse(baseUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          );
+        }
+      } catch (_) {
+        //ignorar por enquanto
+      }
+
+
+  } catch (e) {
+      print('Error Loging Out');
+    }
 }

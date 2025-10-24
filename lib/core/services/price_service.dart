@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/price.dart';
 import '../models/fuel.dart';
@@ -42,6 +43,26 @@ class PriceService {
       return Price.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to create price (${response.statusCode})\n${response.body}');
+    }
+  }
+
+  Future<void> uploadPriceImage(File imageFile) async{
+    final url = Uri.parse(baseUrl);
+    final request = http.MultipartRequest('POST', url);
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path,),
+    );
+
+    request.headers.addAll(
+      createAuthHeaders(),
+    );
+
+    final response = await request.send();
+
+    if(response.statusCode == 200){
+      print('Upload Completed');
+    } else {
+      print('Upload Failed Status: ${response.statusCode}');
     }
   }
 }
