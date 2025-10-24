@@ -2,17 +2,17 @@ import 'fuel.dart';
 
 class GasStation {
   final int? id;
-  final String name;
-  final double latitude;
-  final double longitude;
-  final List<Fuel> fuel;
+  final String? name;
+  final double? latitude;
+  final double? longitude;
+  final List<Fuel>? fuel;
 
   GasStation({
     this.id,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    required this.fuel,
+    this.name,
+    this.latitude,
+    this.longitude,
+    this.fuel,
   });
 
   factory GasStation.fromJson(Map<String, dynamic> json) {
@@ -44,7 +44,7 @@ class GasStation {
       'name': name,
       'latitude': latitude,
       'longitude': longitude,
-      'fuels': fuel.map((c) => c.toJson()).toList(),
+      'fuels': (fuel ?? []).map((c) => c.toJson()).toList(),
     };
   }
 }

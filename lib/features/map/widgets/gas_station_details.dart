@@ -32,19 +32,19 @@ class GasStationDetails extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              gasStation.name,
+              gasStation.name ?? "Posto Sem Nome",
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             // Use the 'fuel' property from your GasStation model
-            if (gasStation.fuel.isEmpty)
+            if (gasStation.fuel?.isEmpty ?? true)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text('No price information available.'),
               )
             else
             // Iterate through the list of 'fuel' objects
-              ...gasStation.fuel.map((fuel) {
+              ...(gasStation.fuel ?? []).map((fuel) {
                 // Safely cast price to num, providing a default value if null
                 final num price = (fuel.price as num?) ?? 0.0;
 

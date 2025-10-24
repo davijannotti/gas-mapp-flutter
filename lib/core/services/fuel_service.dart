@@ -5,7 +5,7 @@ import '../models/gas_station.dart';
 import 'auth_helper.dart';
 
 class FuelService {
-  final String baseUrl = 'https://gasmapp-backend-fork-production.up.railway.app/fuels';
+  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/fuels';
   final String gasStationsUrl = 'https://gasmapp-backend-production.up.railway.app/gasstations';
 
   Future<Fuel> getFuelById(int id) async {
@@ -47,7 +47,7 @@ class FuelService {
 
 
       try{
-        return gasStation.fuel.firstWhere(
+        return gasStation.fuel?.firstWhere(
               (f) => f.name.toLowerCase() == fuelName.toLowerCase(),
         );
       } catch (e) {
