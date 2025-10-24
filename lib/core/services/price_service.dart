@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_app/core/models/gas_station.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/price.dart';
@@ -17,19 +18,20 @@ class PriceService {
     required double priceValue,
   }) async {
     Fuel? fuel = await fuelService.getFuelByName(gasStationId, fuelName);
-
+    final gasStation = GasStation(id: gasStationId);
     if (fuel == null) {
       final newFuel = Fuel(
-        gasStationId: gasStationId,
+        gasStation: gasStation,
         name: fuelName,
         price: null,
       );
       fuel = await fuelService.createFuel(newFuel);
     }
-
+    print("RESPOSTA DA REQUISICAO:  ");
+    print(fuel);
     final price = Price(
       fuelId: fuel.id ?? 0,
-      clientId: 1,
+      clientId: clientId,
       price: priceValue,
     );
 

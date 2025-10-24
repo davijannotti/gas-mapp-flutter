@@ -60,7 +60,7 @@ class MapWidget extends StatelessWidget {
               return Marker(
                 width: 40,
                 height: 40,
-                point: LatLng(station.latitude, station.longitude),
+                point: LatLng(station.latitude ?? 0.0, station.longitude ?? 0.0),
                 child: GasStationMarker(
                   onTap: () => onStationTapped(station),
                 ),

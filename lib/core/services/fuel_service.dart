@@ -47,7 +47,7 @@ class FuelService {
 
 
       try{
-        return gasStation.fuel.firstWhere(
+        return gasStation.fuel?.firstWhere(
               (f) => f.name.toLowerCase() == fuelName.toLowerCase(),
         );
       } catch (e) {
