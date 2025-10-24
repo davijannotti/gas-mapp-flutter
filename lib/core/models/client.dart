@@ -1,14 +1,14 @@
 class Client {
   int id;
-  String email;
-  String name;
-  String password;
+  String? email;
+  String? name;
+  String? password;
 
   Client({
     required this.id,
-    required this.email,
-    required this.name,
-    required this.password,
+    this.email,
+    this.name,
+    this.password,
   });
 
   factory Client.fromJson(Map<String, dynamic> json) {

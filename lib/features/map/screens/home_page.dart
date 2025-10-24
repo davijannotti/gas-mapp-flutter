@@ -1,16 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
+import '../../../core/models/client.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as permission_handler;
+import '../../../core/models/fuel.dart';
 import '../../../core/models/gas_station.dart';
 import '../../../core/models/price.dart';
 import '../../../core/services/gas_station_service.dart';
 import '../../../core/services/price_service.dart';
+import '../../../core/services/fuel_service.dart';
 import '../widgets/gas_station_details.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/price_form_modal.dart';
@@ -27,12 +30,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GasStationService _gasStationService = GasStationService();
   final PriceService _priceService = PriceService();
+  final FuelService _fuelService = FuelService();
   LocationData? _currentLocation;
   late final MapController _mapController;
   bool _isLoading = true;
   bool _permissionDenied = false;
   String? _errorMessage;
   List<GasStation> _gasStations = [];
+  GasStation? _currentlyDisplayedStation; // New field to track the station in modal
 
   @override
   void initState() {
@@ -52,7 +57,8 @@ class _HomePageState extends State<HomePage> {
 
     if (kIsWeb) {
       await _getLocationByIp();
-    } else {
+    }
+    else {
       await _getDeviceLocation();
     }
   }
@@ -67,6 +73,17 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _gasStations = stations;
         });
+
+        // If a GasStationDetails modal is currently open, update it
+        if (_currentlyDisplayedStation != null) {
+          final updatedStation = _gasStations.firstWhere(
+            (s) => s.id == _currentlyDisplayedStation!.id,
+            orElse: () => _currentlyDisplayedStation!, // Fallback to old if not found
+          );
+          // Dismiss the old modal and show the new one with updated data
+          Navigator.of(context).pop(); // Dismiss the current modal
+          _showGasStationDetails(updatedStation); // Reopen with updated data
+        }
       }
     } catch (e) {
       _showError("Could not fetch nearby stations: $e");
@@ -89,7 +106,8 @@ class _HomePageState extends State<HomePage> {
           });
           await _fetchNearbyStations(location);
         }
-      } else {
+      }
+      else {
         _showError("Could not get location from IP address.");
       }
     } catch (e) {
@@ -128,7 +146,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final currentLocation = await location.getLocation();
       if (mounted) {
-        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!); 
         setState(() {
           _currentLocation = currentLocation;
           _isLoading = false;
@@ -159,12 +177,25 @@ class _HomePageState extends State<HomePage> {
         onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
             debugPrint("CHEGUEI AQUI");
+            var client = Client(id: 1);
 
-            // TODO: Replace 'clientId: 1' with the actual ID of the logged-in user.
+            // 1. Get Fuel object
+            Fuel? fuel = await _fuelService.getFuelByName(station, fuelName);
+
+            // 2. If fuel doesn't exist, create it
+            if (fuel == null) {
+              final newFuel = Fuel(
+                gasStation: station, // Use the GasStation object directly
+                name: fuelName,
+                price: null, // Price is not set during fuel creation
+              );
+              fuel = await _fuelService.createFuel(newFuel);
+            }
+
+            // 3. Call createPrice with the Fuel object
             await _priceService.createPrice(
-              gasStationId: stationId,
-              fuelName: fuelName,
-              clientId: 1, // Using 1 as a placeholder for the logged-in user's ID
+              fuel: fuel,
+              client: client,
               priceValue: priceValue,
             );
 
@@ -269,6 +300,9 @@ class _HomePageState extends State<HomePage> {
 
 
   void _showGasStationDetails(GasStation station) {
+    setState(() {
+      _currentlyDisplayedStation = station; // Set the currently displayed station
+    });
     showModalBottomSheet(
       context: context,
       builder: (context) => GasStationDetails(
@@ -279,10 +313,14 @@ class _HomePageState extends State<HomePage> {
         },
         onTakePhoto: () {
           Navigator.of(context).pop();
-          _handlePhotoUpload(station.id!);
+          _handlePhotoUpload(station.id!); 
         },
       ),
-    );
+    ).whenComplete(() { // When the modal is dismissed
+      setState(() {
+        _currentlyDisplayedStation = null; // Clear the currently displayed station
+      });
+    });
   }
 
   @override
@@ -377,7 +415,7 @@ class _HomePageState extends State<HomePage> {
           ),
           mapController: _mapController,
           gasStations: _gasStations,
-          onStationTapped: _showGasStationDetails,
+          onStationTapped: (station) => _showGasStationDetails(station),
         ),
         const SearchBar(),
         Positioned(
