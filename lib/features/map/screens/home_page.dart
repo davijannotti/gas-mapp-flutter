@@ -158,6 +158,8 @@ class _HomePageState extends State<HomePage> {
         stationId: station.id!, // Use the non-nullable ID here.
         onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
+            debugPrint("CHEGUEI AQUI");
+
             // TODO: Replace 'clientId: 1' with the actual ID of the logged-in user.
             await _priceService.createPrice(
               gasStationId: stationId,
