@@ -53,7 +53,7 @@ class AuthService {
     try {
       await _googleSignIn.signOut();
 
-      await _storage.delay.delete(key: 'access_token');
+      await _storage.delete(key: 'access_token');
 
       try {
         final token = await _storage.read(key: 'access_token');
@@ -71,7 +71,8 @@ class AuthService {
       }
 
 
-  } catch (e) {
+    } catch (e) {
       print('Error Loging Out');
     }
+  }
 }
