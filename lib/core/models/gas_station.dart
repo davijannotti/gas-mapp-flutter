@@ -17,14 +17,12 @@ class GasStation {
 
   factory GasStation.fromJson(Map<String, dynamic> json) {
     return GasStation(
-      // Converte id para int, mesmo que seja string ou null
       id: json['id'] != null
           ? (json['id'] is int
           ? json['id']
           : int.tryParse(json['id'].toString()))
           : null,
 
-      // Para campos obrigatórios, usa valor padrão caso venha null
       name: json['name'] ?? 'Sem nome',
       latitude: (json['latitude'] != null)
           ? (json['latitude'] as num).toDouble()
@@ -33,8 +31,7 @@ class GasStation {
           ? (json['longitude'] as num).toDouble()
           : 0.0,
 
-      // Lista de fuel segura: null vira lista vazia
-      fuel: (json['fuel'] as List<dynamic>?)
+      fuel: (json['fuels'] as List<dynamic>?)
           ?.map((c) => Fuel.fromJson(c))
           .toList() ??
           [],
@@ -47,7 +44,7 @@ class GasStation {
       'name': name,
       'latitude': latitude,
       'longitude': longitude,
-      'fuel': fuel.map((c) => c.toJson()).toList(),
+      'fuels': fuel.map((c) => c.toJson()).toList(),
     };
   }
 }
