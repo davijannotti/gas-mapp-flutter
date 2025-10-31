@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
@@ -38,12 +39,29 @@ class _HomePageState extends State<HomePage> {
   String? _errorMessage;
   List<GasStation> _gasStations = [];
   GasStation? _currentlyDisplayedStation; // New field to track the station in modal
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
     _initializeLocation();
+
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (_currentLocation != null) {
+        _fetchNearbyStations(LatLng(
+          _currentLocation!.latitude!,
+          _currentLocation!.longitude!,
+        ));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _mapController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeLocation() async {
@@ -82,7 +100,9 @@ class _HomePageState extends State<HomePage> {
           );
           // Dismiss the old modal and show the new one with updated data
           Navigator.of(context).pop(); // Dismiss the current modal
-          _showGasStationDetails(updatedStation); // Reopen with updated data
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showGasStationDetails(updatedStation);
+          });
         }
       }
     } catch (e) {
@@ -146,7 +166,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final currentLocation = await location.getLocation();
       if (mounted) {
-        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!); 
+        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!);
         setState(() {
           _currentLocation = currentLocation;
           _isLoading = false;
@@ -218,6 +238,9 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: Colors.green,
               ),
             );
+
+            // Wait for a short period to allow the backend to process the update.
+            await Future.delayed(const Duration(seconds: 1));
 
             // Refresh station data to show the new price
             if (_currentLocation != null) {
@@ -321,13 +344,9 @@ class _HomePageState extends State<HomePage> {
       builder: (context) => GasStationDetails(
         gasStation: station,
         onAddPrice: () {
-          Navigator.of(context).pop();
           _showAddPriceForm(station);
         },
-        onTakePhoto: () {
-          Navigator.of(context).pop();
-          _handlePhotoUpload(station.id!); 
-        },
+        onTakePhoto: () => _handlePhotoUpload(station.id!),
       ),
     ).whenComplete(() { // When the modal is dismissed
       setState(() {

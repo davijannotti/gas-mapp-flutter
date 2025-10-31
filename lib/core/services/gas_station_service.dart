@@ -10,7 +10,7 @@ class GasStationService {
 
   Future<List<GasStation>> getNearbyStations(double latitude, double longitude) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/nearby?latitude=$latitude&longitude=$longitude&delta=1'),
+      Uri.parse('$baseUrl/nearby?latitude=$latitude&longitude=$longitude&delta=1&timestamp=${DateTime.now().millisecondsSinceEpoch}'),
       headers: createAuthHeaders(),
     );
     debugPrint('Response status: ${response.statusCode}');
