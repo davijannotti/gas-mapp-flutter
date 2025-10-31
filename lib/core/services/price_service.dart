@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/price.dart';
 import '../models/fuel.dart';
 import '../models/client.dart';
@@ -8,7 +9,7 @@ import 'auth_helper.dart';
 import 'fuel_service.dart';
 
 class PriceService {
-  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/prices';
+  final String baseUrl = '${ApiConfig.baseUrl}/prices';
   final FuelService fuelService = FuelService();
 
   Future<Price> createPrice({
