@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/evaluation.dart';
 
 class EvaluationService {
-  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/evaluations';
+  final String baseUrl = '${ApiConfig.baseUrl}/evaluations';
 
   Future<List<Evaluation>> getEvaluations() async {
     final response = await http.get(Uri.parse(baseUrl));

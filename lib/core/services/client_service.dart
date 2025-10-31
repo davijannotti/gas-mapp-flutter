@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/client.dart';
 
 class ClientService {
-  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/clients';
+  final String baseUrl = '${ApiConfig.baseUrl}/clients';
 
   Future<List<Client>> getClients() async {
     final response = await http.get(Uri.parse(baseUrl));

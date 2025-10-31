@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/gas_station.dart';
 import 'auth_helper.dart';
 
 class GasStationService {
-  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/gasstations';
+  final String baseUrl = '${ApiConfig.baseUrl}/gasstations';
 
   Future<List<GasStation>> getGasStations() async {
     // Add headers to the request
