@@ -14,7 +14,7 @@ class GasStationService {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => GasStation.fromJson(json)).toList();
     } else {
-      throw Exception('Fail to load gas stations: ${response.statusCode}');
+      throw Exception('Falha ao carregar postos de gasolina: ${response.statusCode}');
     }
   }
 
@@ -39,7 +39,7 @@ class GasStationService {
     if (response.statusCode == 200) {
       return GasStation.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('GasStation not found: ${response.statusCode}');
+      throw Exception('Posto de gasolina não encontrado: ${response.statusCode}');
     }
   }
 
@@ -54,7 +54,7 @@ class GasStationService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return GasStation.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create gas station: ${response.statusCode}');
+      throw Exception('Falha ao criar posto de gasolina: ${response.statusCode}');
     }
   }
 
@@ -67,7 +67,7 @@ class GasStationService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to update gas station: ${response.statusCode}');
+      throw Exception('Falha ao atualizar posto de gasolina: ${response.statusCode}');
     }
   }
 
@@ -76,7 +76,7 @@ class GasStationService {
     final response = await http.delete(Uri.parse('$baseUrl/$id'), headers: createAuthHeaders());
 
     if (response.statusCode != 204 && response.statusCode != 200) {
-      throw Exception('Failed to delete gas station: ${response.statusCode}');
+      throw Exception('Falha ao deletar posto de gasolina: ${response.statusCode}');
     }
   }
 }

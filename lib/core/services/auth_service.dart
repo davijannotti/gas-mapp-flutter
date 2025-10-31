@@ -15,16 +15,16 @@ class AuthService {
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // The user canceled the sign-in
+        // O usuário cancelou o login
         return;
       }
 
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
 
-      // --- HANDOFF FOR YOUR FRIEND ---
-      // TODO: Send this 'idToken' to your backend to exchange for a Keycloak token.
-      // Your friend's code will go here. For example:
+      // --- ENTREGA PARA SEU AMIGO ---
+      // TODO: Envie este 'idToken' para o seu backend para trocar por um token Keycloak.
+      // O código do seu amigo irá aqui. Por exemplo:
       /*
       final response = await http.post(
         Uri.parse('YOUR_BACKEND_ENDPOINT/auth/google'),
@@ -34,24 +34,24 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final keycloakToken = json.decode(response.body)['access_token'];
-        // Store the token securely and update the app state
+        // Armazene o token com segurança e atualize o estado do aplicativo
       } else {
-        // Handle login error with the backend
+        // Lidar com erro de login com o backend
         _googleSignIn.signOut();
       }
       */
-      // For now, we'll just print the token for verification.
-      debugPrint('Google ID Token: $idToken');
-      // --- END OF HANDOFF ---
+      // Por enquanto, vamos apenas imprimir o token para verificação.
+      debugPrint('Token de ID do Google: $idToken');
+      // --- FIM DA ENTREGA ---
 
     } catch (error) {
-      debugPrint('Error signing in: $error');
+      debugPrint('Erro ao fazer login: $error');
     }
   }
 
   Future<void> signOut() {
-    // TODO: Your friend should also consider implementing a call to the backend
-    // to invalidate the Keycloak session if necessary.
+    // TODO: Seu amigo também deve considerar implementar uma chamada para o backend
+    // para invalidar a sessão do Keycloak, se necessário.
     return _googleSignIn.signOut();
   }
 }

@@ -14,7 +14,7 @@ class GoogleLoginButton extends StatelessWidget {
         height: 24.0,
       ),
       label: const Text(
-        'Login with Google',
+        'Login com Google',
         style: TextStyle(color: Colors.black87),
       ),
       style: ElevatedButton.styleFrom(

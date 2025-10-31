@@ -33,7 +33,7 @@ class MapWidget extends StatelessWidget {
         ),
         const RichAttributionWidget(
           attributions: [
-            TextSourceAttribution('OpenStreetMap contributors', onTap: null),
+            TextSourceAttribution('Contribuidores do OpenStreetMap', onTap: null),
           ],
         ),
         MarkerLayer(
@@ -46,7 +46,7 @@ class MapWidget extends StatelessWidget {
                 children: [
                   Icon(Icons.location_on, color: Colors.red, size: 40),
                   Text(
-                    'You are here',
+                    'Você está aqui',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,

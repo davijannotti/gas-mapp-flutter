@@ -29,15 +29,15 @@ class Price {
         ? Fuel.fromJson(fuelData)
         : Fuel(
             id: null, // Fuel.id is nullable
-            name: 'Unknown Fuel',
-            gasStation: GasStation(id: null, name: 'Unknown Gas Station', latitude: 0.0, longitude: 0.0), // GasStation.id is nullable
+            name: 'Combustível Desconhecido',
+            gasStation: GasStation(id: null, name: 'Posto Desconhecido', latitude: 0.0, longitude: 0.0), // GasStation.id is nullable
           );
 
     // Handle client
     final clientData = json['client'];
     final Client parsedClient = clientData != null
         ? Client.fromJson(clientData)
-        : Client(id: 0, email: 'unknown@example.com', name: 'Unknown Client', password: ''); // Client.id is int, so use 0
+        : Client(id: 0, email: 'desconhecido@example.com', name: 'Cliente Desconhecido', password: ''); // Client.id is int, so use 0
 
     return Price(
       id: json['id'] != null

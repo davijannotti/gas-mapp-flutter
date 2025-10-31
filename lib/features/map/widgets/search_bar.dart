@@ -24,7 +24,7 @@ class SearchBar extends StatelessWidget {
         ),
         child: const TextField(
           decoration: InputDecoration(
-            hintText: 'Find Gas Station',
+            hintText: 'Encontrar Posto de Gasolina',
             border: InputBorder.none,
             icon: Icon(Icons.search),
           ),

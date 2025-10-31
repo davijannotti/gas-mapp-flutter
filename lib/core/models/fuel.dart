@@ -21,7 +21,7 @@ class Fuel {
     final gasStationData = json['gasStation'];
     final GasStation parsedGasStation = gasStationData != null
         ? GasStation.fromJson(gasStationData)
-        : GasStation(id: null, name: 'Unknown', latitude: 0.0, longitude: 0.0);
+        : GasStation(id: null, name: 'Desconhecido', latitude: 0.0, longitude: 0.0);
 
     Price? latestPrice;
     if (json['prices'] is List && (json['prices'] as List).isNotEmpty) {

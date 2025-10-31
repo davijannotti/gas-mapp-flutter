@@ -33,7 +33,8 @@ class PriceService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Price.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create price (${response.statusCode})\n${response.body}');
+      throw Exception('Falha ao criar preço (${response.statusCode})
+${response.body}');
     }
   }
 }
