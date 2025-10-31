@@ -44,6 +44,19 @@ class GasStationService {
     }
   }
 
+  Future<List<GasStation>> getGasStationCheapest(double lat, double log, String fuel_type) async{
+    final url = Uri.parse('$baseUrl/cheapest?latitude=$lat&longitude=$log&delta=1&fuelType=$fuel_type');
+
+    final response = await http.get(url, headers: createAuthHeaders());
+
+    if(response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => GasStation.fromJson(json)).toList();
+    } else {
+      throw Exception('Erro ao buscar posto mais barato: ${response.statusCode}');
+    }
+  }
+
   Future<GasStation> createGasStation(GasStation gasStation) async {
     final response = await http.post(
       Uri.parse(baseUrl),
