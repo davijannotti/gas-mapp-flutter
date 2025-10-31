@@ -1,1 +1,1 @@
-// This model has been moved to core/models and this file can be deleted.
+// Este modelo foi movido para core/models e este arquivo pode ser excluído.

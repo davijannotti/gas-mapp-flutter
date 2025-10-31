@@ -45,7 +45,7 @@ class AuthService {
         _googleSignIn.signOut();
       }
     } catch (error) {
-      debugPrint('Error signing in: $error');
+      debugPrint('Erro ao fazer login: $error');
     }
   }
 

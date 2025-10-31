@@ -37,7 +37,7 @@ class _SideBarState extends State<SideBar> {
       children: [
         UserAccountsDrawerHeader(
           accountName: Text(
-            user.displayName ?? 'User Name',
+            user.displayName ?? 'Nome do Usuário',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           accountEmail: Text(user.email),
@@ -48,7 +48,7 @@ class _SideBarState extends State<SideBar> {
         ),
         ListTile(
           leading: const Icon(Icons.bar_chart),
-          title: const Text('Statistics'),
+          title: const Text('Estatísticas'),
           onTap: () {
             // TODO: Navigate to user statistics screen
             Navigator.pop(context);
@@ -57,7 +57,7 @@ class _SideBarState extends State<SideBar> {
         const Divider(),
         ListTile(
           leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
+          title: const Text('Sair'),
           onTap: () => _authService.signOut(),
         ),
       ],

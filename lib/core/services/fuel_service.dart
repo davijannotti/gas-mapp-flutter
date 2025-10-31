@@ -17,7 +17,7 @@ class FuelService {
     if (response.statusCode == 200) {
       return Fuel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Fuel not found (${response.statusCode})');
+      throw Exception('Combustível não encontrado (${response.statusCode})');
     }
   }
 
@@ -34,7 +34,7 @@ class FuelService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Fuel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create Fuel (${response.statusCode})\n${response.body}');
+      throw Exception('Falha ao criar Combustível (${response.statusCode})\n${response.body}');
     }
   }
 

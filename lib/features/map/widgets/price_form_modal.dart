@@ -75,7 +75,7 @@ class _PriceFormModalState extends State<PriceFormModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add New Price', style: Theme.of(context).textTheme.headlineSmall),
+            Text('Adicionar Novo Preço', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 24),
             // Fuel Type Dropdown
             DropdownButtonFormField<String>(
@@ -92,7 +92,7 @@ class _PriceFormModalState extends State<PriceFormModal> {
                 });
               },
               decoration: const InputDecoration(
-                labelText: 'Fuel Type',
+                labelText: 'Tipo de Combustível',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -101,7 +101,7 @@ class _PriceFormModalState extends State<PriceFormModal> {
             TextFormField(
               controller: _priceController,
               decoration: const InputDecoration(
-                labelText: 'Price',
+                labelText: 'Preço',
                 // Using a more generic currency symbol.
                 prefixText: 'R\$ ',
                 border: OutlineInputBorder(),
@@ -113,11 +113,11 @@ class _PriceFormModalState extends State<PriceFormModal> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a price';
+                  return 'Por favor, insira um preço';
                 }
                 // Handle both dot and comma for validation.
                 if (double.tryParse(value.replaceAll(',', '.')) == null) {
-                  return 'Please enter a valid number';
+                  return 'Por favor, insira um número válido';
                 }
                 return null;
               },
@@ -129,7 +129,7 @@ class _PriceFormModalState extends State<PriceFormModal> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text('Submit Price'),
+                child: const Text('Enviar Preço'),
               ),
             ),
             const SizedBox(height: 10), // Added some padding at the bottom

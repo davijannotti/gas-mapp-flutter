@@ -402,7 +402,7 @@ class _HomePageState extends State<HomePage> {
 
     if (_currentLocation == null) {
       return const Center(
-        child: Text("Could not get your location."),
+        child: Text("Não foi possível obter sua localização."),
       );
     }
 

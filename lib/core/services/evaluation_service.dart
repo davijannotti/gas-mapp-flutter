@@ -12,7 +12,7 @@ class EvaluationService {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => Evaluation.fromJson(json)).toList();
     } else {
-      throw Exception('Fail to load evaluations');
+      throw Exception('Falha ao carregar avaliações');
     }
   }
 
@@ -22,7 +22,7 @@ class EvaluationService {
     if (response.statusCode == 200) {
       return Evaluation.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Evaluation not found');
+      throw Exception('Avaliação não encontrada');
     }
   }
 
@@ -36,7 +36,7 @@ class EvaluationService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Evaluation.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create evaluation');
+      throw Exception('Falha ao criar avaliação');
     }
   }
 
@@ -48,7 +48,7 @@ class EvaluationService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to update evaluation');
+      throw Exception('Falha ao atualizar avaliação');
     }
   }
 
@@ -56,7 +56,7 @@ class EvaluationService {
     final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode != 204 && response.statusCode != 200) {
-      throw Exception('Failed to delete evaluation');
+      throw Exception('Falha ao deletar avaliação');
     }
   }
 }

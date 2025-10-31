@@ -40,7 +40,7 @@ class GasStationDetails extends StatelessWidget {
             if (gasStation.fuel?.isEmpty ?? true)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('No price information available.'),
+                child: Text('Nenhuma informação de preço disponível.'),
               )
             else
             // Iterate through the list of 'fuel' objects
@@ -58,7 +58,7 @@ class GasStationDetails extends StatelessWidget {
                       // Access the price from the 'fuel' object
                       Text(
                         // Display the price or 'N/A' if null
-                        'R\$ ${priceValue?.toStringAsFixed(2) ?? 'N/A'}',
+                        'R\$ ${priceValue?.toStringAsFixed(2) ?? 'N/D'}',
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
@@ -73,7 +73,7 @@ class GasStationDetails extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onAddPrice,
                     icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('Add Price'),
+                    label: const Text('Adicionar Preço'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -84,7 +84,7 @@ class GasStationDetails extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onTakePhoto,
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Take Photo'),
+                    label: const Text('Tirar Foto'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),

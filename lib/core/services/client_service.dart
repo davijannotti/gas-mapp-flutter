@@ -12,7 +12,7 @@ class ClientService {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => Client.fromJson(json)).toList();
     } else {
-      throw Exception('Fail to load clients');
+      throw Exception('Falha ao carregar clientes');
     }
   }
 
@@ -22,7 +22,7 @@ class ClientService {
     if (response.statusCode == 200) {
       return Client.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Client not found');
+      throw Exception('Cliente não encontrado');
     }
   }
 
@@ -36,7 +36,7 @@ class ClientService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Client.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create client');
+      throw Exception('Falha ao criar cliente');
     }
   }
 
@@ -48,7 +48,7 @@ class ClientService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to update client');
+      throw Exception('Falha ao atualizar cliente');
     }
   }
 
@@ -56,7 +56,7 @@ class ClientService {
     final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode != 204 && response.statusCode != 200) {
-      throw Exception('Failed to delete client');
+      throw Exception('Falha ao deletar cliente');
     }
   }
 }
