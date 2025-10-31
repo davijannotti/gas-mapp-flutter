@@ -176,25 +176,38 @@ class _HomePageState extends State<HomePage> {
         stationId: station.id!, // Use the non-nullable ID here.
         onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
+            debugPrint(station.fuel.toString());
             debugPrint("CHEGUEI AQUI");
             var client = Client(id: 1);
 
             // 1. Get Fuel object
             Fuel? fuel = await _fuelService.getFuelByName(station, fuelName);
-
+            debugPrint(fuel?.id.toString());
             // 2. If fuel doesn't exist, create it
             if (fuel == null) {
               final newFuel = Fuel(
                 gasStation: station, // Use the GasStation object directly
-                name: fuelName,
-                price: null, // Price is not set during fuel creation
+                name: fuelName.toUpperCase(),
               );
+              print(newFuel.toJson());
+              // Assign the created fuel (with its ID) to the 'fuel' variable
               fuel = await _fuelService.createFuel(newFuel);
             }
 
+            // Re-construct the fuel object to ensure it has the complete gas station data
+            final completeFuel = Fuel(
+              id: fuel.id,
+              name: fuel.name,
+              gasStation: station, // Use the original station object
+              date: fuel.date,
+              price: fuel.price,
+            );
+
+            debugPrint(completeFuel.toJson().toString());
+
             // 3. Call createPrice with the Fuel object
             await _priceService.createPrice(
-              fuel: fuel,
+              fuel: completeFuel,
               client: client,
               priceValue: priceValue,
             );

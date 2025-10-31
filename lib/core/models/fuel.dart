@@ -51,8 +51,9 @@ class Fuel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
-      'gasStation': {'id': gasStation.id},
+      'gasStation': gasStation.toJson(),
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/fuel.dart';
@@ -14,6 +15,8 @@ class FuelService {
       Uri.parse('$baseUrl/$id'),
       headers: createAuthHeaders(),
     );
+    debugPrint(' get fuel id Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       return Fuel.fromJson(jsonDecode(response.body));
@@ -26,16 +29,15 @@ class FuelService {
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: createAuthHeaders(),
-      body: jsonEncode(fuel.toJson()),
+      body: json.encode(fuel.toJson()),
     );
-    print("RESPOSTA DO CREATE FUEL");
-    print(response.body);
-    print(fuel.toJson());
+    debugPrint('create fuel req body ${json.encode(fuel.toJson())}');
+    debugPrint('Response body: ${response.body}');
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return Fuel.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 201) {
+      return Fuel.fromJson(json.decode(utf8.decode(response.bodyBytes)));
     } else {
-      throw Exception('Falha ao criar Combustível (${response.statusCode})\n${response.body}');
+      throw Exception('Failed to create fuel');
     }
   }
 

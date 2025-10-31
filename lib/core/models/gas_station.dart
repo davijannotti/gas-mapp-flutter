@@ -46,7 +46,6 @@ class GasStation {
       'name': name,
       'latitude': latitude,
       'longitude': longitude,
-      'fuels': (fuel ?? []).map((c) => c.toJson()).toList(),
     };
   }
 }
