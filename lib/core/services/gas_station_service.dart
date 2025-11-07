@@ -53,8 +53,18 @@ class GasStationService {
     final response = await http.get(url, headers: createAuthHeaders());
 
     if(response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => GasStation.fromJson(json)).toList();
+      final decoded = json.decode(utf8.decode(response.bodyBytes));
+
+      if (decoded is List) {
+        return decoded.map((json) => GasStation.fromJson(json)).toList();
+      } else if (decoded is Map<String, dynamic>) {
+        if (decoded.isEmpty) {
+          return [];
+        }
+        return [GasStation.fromJson(decoded)];
+      } else {
+        return [];
+      }
     } else {
       throw Exception('Erro ao buscar posto mais barato: ${response.statusCode}');
     }

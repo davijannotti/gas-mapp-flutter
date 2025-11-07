@@ -164,6 +164,106 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _findCheapestGasStation() async {
+    if (_currentLocation == null) {
+      _showError("Could not get your location to find the cheapest gas station.");
+      return;
+    }
+
+    final String? selectedFuel = await _showFuelSelectionDialog();
+
+    if (selectedFuel != null) {
+      try {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Searching for the cheapest gas station...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        final stations = await _gasStationService.getGasStationCheapest(
+          _currentLocation!.latitude!,
+          _currentLocation!.longitude!,
+          selectedFuel,
+        );
+
+        if (mounted) {
+          if (stations.isNotEmpty) {
+            final cheapestStation = stations.first;
+
+            final stationExists = _gasStationsNotifier.value.any((s) => s.id == cheapestStation.id);
+
+            if (!stationExists) {
+              _gasStationsNotifier.value = [..._gasStationsNotifier.value, cheapestStation];
+            }
+
+            _mapController.move(
+              LatLng(cheapestStation.latitude!, cheapestStation.longitude!),
+              15.0,
+            );
+
+            _showGasStationDetails(cheapestStation);
+
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('No gas stations found for the selected fuel type.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        _showError("Could not fetch cheapest gas stations: $e");
+      }
+    }
+  }
+
+  Future<String?> _showFuelSelectionDialog() async {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Fuel Type'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                // Using the same list from PriceFormModal
+                InkWell(
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text('Gasolina'),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop('Gasolina');
+                  },
+                ),
+                InkWell(
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text('Etanol'),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop('Etanol');
+                  },
+                ),
+                InkWell(
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text('Diesel'),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop('Diesel');
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _showAddPriceForm(GasStation station) {
     return showModalBottomSheet(
       context: context,
@@ -442,26 +542,11 @@ class _HomePageState extends State<HomePage> {
         Positioned(
           bottom: 30,
           right: 15,
-          child: Column(
-            children: [
-              FloatingActionButton(
-                heroTag: 'closest_station',
-                backgroundColor: Colors.teal,
-                onPressed: () {
-                  // TODO: Implement find closest gas station
-                },
-                child: const Icon(Icons.local_gas_station, color: Colors.white),
-              ),
-              const SizedBox(height: 10),
-              FloatingActionButton(
-                heroTag: 'cheapest_station',
-                backgroundColor: Colors.teal,
-                onPressed: () {
-                  // TODO: Implement find closest-cheapest gas station
-                },
-                child: const Icon(Icons.attach_money, color: Colors.white),
-              ),
-            ],
+          child: FloatingActionButton(
+            heroTag: 'cheapest_station',
+            backgroundColor: Colors.teal,
+            onPressed: _findCheapestGasStation,
+            child: const Icon(Icons.attach_money, color: Colors.white),
           ),
         ),
       ],
