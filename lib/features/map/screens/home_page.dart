@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
@@ -31,19 +32,28 @@ class _HomePageState extends State<HomePage> {
   final GasStationService _gasStationService = GasStationService();
   final PriceService _priceService = PriceService();
   final FuelService _fuelService = FuelService();
+
+  final ValueNotifier<List<GasStation>> _gasStationsNotifier = ValueNotifier([]);
+
   LocationData? _currentLocation;
   late final MapController _mapController;
   bool _isLoading = true;
   bool _permissionDenied = false;
   String? _errorMessage;
-  List<GasStation> _gasStations = [];
-  GasStation? _currentlyDisplayedStation; // New field to track the station in modal
+  GasStation? _currentlyDisplayedStation;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
     _initializeLocation();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    _gasStationsNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeLocation() async {
@@ -70,20 +80,7 @@ class _HomePageState extends State<HomePage> {
         location.longitude,
       );
       if (mounted) {
-        setState(() {
-          _gasStations = stations;
-        });
-
-        // If a GasStationDetails modal is currently open, update it
-        if (_currentlyDisplayedStation != null) {
-          final updatedStation = _gasStations.firstWhere(
-            (s) => s.id == _currentlyDisplayedStation!.id,
-            orElse: () => _currentlyDisplayedStation!, // Fallback to old if not found
-          );
-          // Dismiss the old modal and show the new one with updated data
-          Navigator.of(context).pop(); // Dismiss the current modal
-          _showGasStationDetails(updatedStation); // Reopen with updated data
-        }
+        _gasStationsNotifier.value = [...stations]; // 👈 cria uma nova lista e força o rebuild
       }
     } catch (e) {
       _showError("Could not fetch nearby stations: $e");
@@ -167,34 +164,36 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showAddPriceForm(GasStation station) {
-    showModalBottomSheet(
+  Future<void> _showAddPriceForm(GasStation station) {
+    return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Make modal background transparent
+      backgroundColor: Colors.transparent,
       builder: (context) => PriceFormModal(
-        stationId: station.id!, // Use the non-nullable ID here.
+        stationId: station.id!,
         onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
-            debugPrint("CHEGUEI AQUI");
             var client = Client(id: 1);
 
-            // 1. Get Fuel object
             Fuel? fuel = await _fuelService.getFuelByName(station, fuelName);
-
-            // 2. If fuel doesn't exist, create it
             if (fuel == null) {
               final newFuel = Fuel(
-                gasStation: station, // Use the GasStation object directly
-                name: fuelName,
-                price: null, // Price is not set during fuel creation
+                gasStation: station,
+                name: fuelName.toUpperCase(),
               );
               fuel = await _fuelService.createFuel(newFuel);
             }
 
-            // 3. Call createPrice with the Fuel object
+            final completeFuel = Fuel(
+              id: fuel.id,
+              name: fuel.name,
+              gasStation: station,
+              date: fuel.date,
+              price: fuel.price,
+            );
+
             await _priceService.createPrice(
-              fuel: fuel,
+              fuel: completeFuel,
               client: client,
               priceValue: priceValue,
             );
@@ -206,11 +205,12 @@ class _HomePageState extends State<HomePage> {
               ),
             );
 
-            // Refresh station data to show the new price
             if (_currentLocation != null) {
-              await _fetchNearbyStations(LatLng(
-                  _currentLocation!.latitude!, _currentLocation!.longitude!));
+              await _fetchNearbyStations(
+                LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+              );
             }
+            Navigator.of(context).pop(); // 👈 fecha o formulário só depois do refresh
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -228,13 +228,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _handlePhotoUpload(int stationId) async {
     var status = await permission_handler.Permission.camera.status;
 
-    // If permission is not granted, request it.
     if (!status.isGranted) {
       status = await permission_handler.Permission.camera.request();
     }
 
     if (status.isGranted) {
-      // Permission is granted, proceed to pick image.
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
@@ -243,9 +241,7 @@ class _HomePageState extends State<HomePage> {
           const SnackBar(content: Text('Uploading photo...')),
         );
         try {
-          // TODO: The 'uploadPricePhoto' method is not available in the provided services.
-          // This needs to be implemented in one of the service files by your friend.
-          // await _gasStationService.uploadPricePhoto(stationId, image.path);
+          // TODO: implementar uploadPhoto no serviço
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Photo uploaded successfully! (DEMO)'),
@@ -262,13 +258,13 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } else if (status.isPermanentlyDenied) {
-      // The user permanently denied the permission, show a dialog to open settings.
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Camera Permission'),
-            content: const Text('Camera permission is permanently denied. Please go to app settings to enable it.'),
+            content: const Text(
+                'Camera permission is permanently denied. Please go to app settings to enable it.'),
             actions: [
               TextButton(
                 child: const Text('Cancel'),
@@ -286,7 +282,6 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } else {
-      // The user denied the permission, show a snackbar.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -298,29 +293,34 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   void _showGasStationDetails(GasStation station) {
     setState(() {
       _currentlyDisplayedStation = station; // Set the currently displayed station
     });
     showModalBottomSheet(
       context: context,
-      builder: (context) => GasStationDetails(
-        gasStation: station,
-        onAddPrice: () {
-          Navigator.of(context).pop();
-          _showAddPriceForm(station);
-        },
-        onTakePhoto: () {
-          Navigator.of(context).pop();
-          _handlePhotoUpload(station.id!); 
-        },
-      ),
-    ).whenComplete(() { // When the modal is dismissed
-      setState(() {
-        _currentlyDisplayedStation = null; // Clear the currently displayed station
-      });
-    });
+      isScrollControlled: true,
+      builder: (context) {
+        return ValueListenableBuilder<List<GasStation>>(
+          valueListenable: _gasStationsNotifier,
+          builder: (context, gasStations, _) {
+            // Busca o posto atualizado
+            final updatedStation = gasStations.firstWhere(
+                  (s) => s.id == station.id,
+              orElse: () => station,
+            );
+
+            return GasStationDetails(
+              gasStation: updatedStation,
+              onAddPrice: () async {
+                await _showAddPriceForm(updatedStation);
+              },
+              onTakePhoto: () => _handlePhotoUpload(updatedStation.id!),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -408,16 +408,37 @@ class _HomePageState extends State<HomePage> {
 
     return Stack(
       children: [
-        MapWidget(
-          initialCenter: LatLng(
-            _currentLocation!.latitude!,
-            _currentLocation!.longitude!,
-          ),
-          mapController: _mapController,
-          gasStations: _gasStations,
-          onStationTapped: (station) => _showGasStationDetails(station),
+        ValueListenableBuilder<List<GasStation>>(
+          valueListenable: _gasStationsNotifier,
+          builder: (context, gasStations, _) {
+            return MapWidget(
+              initialCenter: LatLng(
+                _currentLocation!.latitude!,
+                _currentLocation!.longitude!,
+              ),
+              mapController: _mapController,
+              gasStations: gasStations,
+              onStationTapped: (station) => _showGasStationDetails(station),
+            );
+          },
         ),
-        const SearchBar(),
+        ValueListenableBuilder<List<GasStation>>(
+          valueListenable: _gasStationsNotifier,
+          builder: (context, gasStations, _ ){
+            return SearchBar(
+              stations: gasStations,
+              onStationSelected: (station) {
+                if (station.latitude != null && station.longitude != null) {
+                  _mapController.move(
+                    LatLng(station.latitude!, station.longitude!),
+                    15.0,
+                  );
+                }
+                _showGasStationDetails(station);
+              },
+            );
+          }
+        ),
         Positioned(
           bottom: 30,
           right: 15,

@@ -4,59 +4,41 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/price.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
+import '../models/client.dart';
 import '../models/fuel.dart';
 import '../models/client.dart';
 import '../models/gas_station.dart';
 import 'auth_helper.dart';
-import 'fuel_service.dart';
 
 class PriceService {
   final String baseUrl = '${ApiConfig.baseUrl}/prices';
-  final FuelService fuelService = FuelService();
 
-  Future<Price> createPrice({
+  Future<void> createPrice({
     required Fuel fuel,
     required Client client,
     required double priceValue,
   }) async {
-    final price = Price(
-      fuel: fuel,
-      client: client,
-      price: priceValue,
-    );
+    final body = {
+      'fuel': fuel.toJson(),
+      'client': client.toJson(),
+      'price': priceValue,
+    };
 
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: createAuthHeaders(),
-      body: jsonEncode(price.toJson()),
+      body: jsonEncode(body),
     );
+    debugPrint('create price req body ${json.encode(body)}');
 
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
 
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return Price.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Falha ao criar preço (${response.statusCode}) ${response.body}');
-    }
-  }
-
-  Future<void> uploadPriceImage(File imageFile) async{
-    final url = Uri.parse(baseUrl);
-    final request = http.MultipartRequest('POST', url);
-    request.files.add(
-      await http.MultipartFile.fromPath('file', imageFile.path,),
-    );
-
-    request.headers.addAll(
-      createAuthHeaders(),
-    );
-
-    final response = await request.send();
-
-    if(response.statusCode == 200){
-      print('Upload Completed');
-    } else {
-      print('Upload Failed Status: ${response.statusCode}');
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create price');
     }
   }
 }
