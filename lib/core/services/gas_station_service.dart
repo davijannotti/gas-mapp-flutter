@@ -20,17 +20,19 @@ class GasStationService {
     }
   }
 
-  Future<List<GasStation>> getNearbyStations(double lat, double lng) async {
-    final url = Uri.parse('$baseUrl/nearby?latitude=$lat&longitude=$lng&delta=1');
-
-    // Add headers to the request
-    final response = await http.get(url, headers: createAuthHeaders());
+  Future<List<GasStation>> getNearbyStations(double latitude, double longitude) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/nearby?latitude=$latitude&longitude=$longitude&delta=1&timestamp=${DateTime.now().millisecondsSinceEpoch}'),
+      headers: createAuthHeaders(),
+    );
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
       return data.map((json) => GasStation.fromJson(json)).toList();
     } else {
-      throw Exception('Erro ao carregar postos: ${response.statusCode}');
+      throw Exception('Failed to load nearby gas stations');
     }
   }
 
@@ -55,26 +57,6 @@ class GasStationService {
       return data.map((json) => GasStation.fromJson(json)).toList();
     } else {
       throw Exception('Erro ao buscar posto mais barato: ${response.statusCode}');
-    }
-  }
-
-  Future<GasStation> createGasStation(GasStation gasStation) async {
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      // Use the helper method for headers
-  Future<List<GasStation>> getNearbyStations(double latitude, double longitude) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/nearby?latitude=$latitude&longitude=$longitude&delta=1&timestamp=${DateTime.now().millisecondsSinceEpoch}'),
-      headers: createAuthHeaders(),
-    );
-    debugPrint('Response status: ${response.statusCode}');
-    debugPrint('Response body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-      return data.map((json) => GasStation.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load nearby gas stations');
     }
   }
 }
