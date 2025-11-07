@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
         _gasStationsNotifier.value = [...stations]; // 👈 cria uma nova lista e força o rebuild
       }
     } catch (e) {
-      _showError("Could not fetch nearby stations: $e");
+      _showError("Não foi possível buscar postos próximos: $e");
     }
   }
 
@@ -105,10 +105,10 @@ class _HomePageState extends State<HomePage> {
         }
       }
       else {
-        _showError("Could not get location from IP address.");
+        _showError("Não foi possível obter a localização a partir do endereço IP.");
       }
     } catch (e) {
-      _showError("Error getting location: $e");
+      _showError("Erro ao obter a localização: $e");
     }
   }
 
@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> {
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        _showError("Location service is disabled.");
+        _showError("O serviço de localização está desativado.");
         return;
       }
     }
@@ -151,7 +151,7 @@ class _HomePageState extends State<HomePage> {
         await _fetchNearbyStations(location);
       }
     } catch (e) {
-      _showError("Error getting device location: $e");
+      _showError("Erro ao obter a localização do dispositivo: $e");
     }
   }
 
@@ -166,7 +166,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _findCheapestGasStation() async {
     if (_currentLocation == null) {
-      _showError("Could not get your location to find the cheapest gas station.");
+      _showError("Não foi possível obter sua localização para encontrar o posto de gasolina mais barato.");
       return;
     }
 
@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
       try {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Searching for the cheapest gas station...'),
+            content: Text('Buscando o posto mais barato...'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -207,14 +207,14 @@ class _HomePageState extends State<HomePage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('No gas stations found for the selected fuel type.'),
+                content: Text('Nenhum posto de gasolina encontrado para o tipo de combustível selecionado.'),
                 backgroundColor: Colors.orange,
               ),
             );
           }
         }
       } catch (e) {
-        _showError("Could not fetch cheapest gas stations: $e");
+        _showError("Não foi possível buscar os postos de gasolina mais baratos: $e");
       }
     }
   }
@@ -224,7 +224,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select Fuel Type'),
+          title: const Text('Selecione o Tipo de Combustível'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -300,7 +300,7 @@ class _HomePageState extends State<HomePage> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Price added successfully!'),
+                content: Text('Preço adicionado com sucesso!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -314,7 +314,7 @@ class _HomePageState extends State<HomePage> {
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error adding price: $e'),
+                content: Text('Erro ao adicionar preço: $e'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -338,20 +338,20 @@ class _HomePageState extends State<HomePage> {
 
       if (image != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Uploading photo...')),
+          const SnackBar(content: Text('Enviando foto...')),
         );
         try {
           // TODO: implementar uploadPhoto no serviço
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Photo uploaded successfully! (DEMO)'),
+              content: Text('Foto enviada com sucesso! (DEMO)'),
               backgroundColor: Colors.green,
             ),
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Photo upload failed: $e'),
+              content: Text('Falha no envio da foto: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -362,16 +362,16 @@ class _HomePageState extends State<HomePage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Camera Permission'),
+            title: const Text('Permissão da Câmera'),
             content: const Text(
-                'Camera permission is permanently denied. Please go to app settings to enable it.'),
+                'A permissão da câmera foi negada permanentemente. Por favor, vá para as configurações do aplicativo para habilitá-la.'),
             actions: [
               TextButton(
-                child: const Text('Cancel'),
+                child: const Text('Cancelar'),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               TextButton(
-                child: const Text('Open Settings'),
+                child: const Text('Abrir Configurações'),
                 onPressed: () {
                   permission_handler.openAppSettings();
                   Navigator.of(context).pop();
@@ -385,7 +385,7 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Camera permission is required to take a photo.'),
+            content: Text('A permissão da câmera é necessária para tirar uma foto.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -443,7 +443,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text("Getting your location..."),
+            Text("Obtendo sua localização..."),
           ],
         ),
       );
@@ -464,7 +464,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Try Again'),
+                child: const Text('Tentar Novamente'),
               ),
             ],
           ),
@@ -480,19 +480,19 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Location permission has been denied.',
+                'A permissão de localização foi negada.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
-                'Please enable location permission to allow the app to show your position on the map.',
+                'Por favor, ative a permissão de localização para permitir que o aplicativo mostre sua posição no mapa.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _initializeLocation,
-                child: const Text('Grant Permission'),
+                child: const Text('Conceder Permissão'),
               ),
             ],
           ),

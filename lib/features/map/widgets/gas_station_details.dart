@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/models/gas_station.dart';
-import '../../../core/models/fuel.dart'; // Import the correct Fuel model
+import '../../../core/models/fuel.dart'; // Importa o modelo correto de Combustível
 
 class GasStationDetails extends StatelessWidget {
   final GasStation gasStation;
@@ -14,9 +15,18 @@ class GasStationDetails extends StatelessWidget {
     required this.onTakePhoto,
   });
 
+  void _launchMaps(double lat, double lng) async {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      throw 'Não foi possível abrir o mapa';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // A wrapper to give the bottom sheet rounded corners and a background color.
+    // Um wrapper para dar ao bottom sheet cantos arredondados e uma cor de fundo.
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -36,16 +46,16 @@ class GasStationDetails extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Use the 'fuel' property from your GasStation model
+            // Use a propriedade 'fuel' do seu modelo GasStation
             if (gasStation.fuel?.isEmpty ?? true)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text('Nenhuma informação de preço disponível.'),
               )
             else
-            // Iterate through the list of 'fuel' objects
+            // Itera através da lista de objetos 'fuel'
               ...(gasStation.fuel ?? []).map((fuel) {
-                // Safely access the price value from the Price object
+                // Acessa com segurança o valor do preço do objeto Price
                 final double? priceValue = fuel.price?.price;
 
                 return Padding(
@@ -53,14 +63,30 @@ class GasStationDetails extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Access the name from the 'fuel' object
+                      // Acessa o nome do objeto 'fuel'
                       Text(fuel.name, style: const TextStyle(fontSize: 16)),
-                      // Access the price from the 'fuel' object
-                      Text(
-                        // Display the price or 'N/A' if null
-                        'R\$ ${priceValue?.toStringAsFixed(2) ?? 'N/D'}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                      // Acessa o preço do objeto 'fuel'
+                      Row(
+                        children: [
+                          Text(
+                            // Exibe o preço ou 'N/D' se for nulo
+                            'R\$ ${priceValue?.toStringAsFixed(2) ?? 'N/D'}',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.thumb_up_outlined),
+                            onPressed: () {
+                              // TODO: Implementar a lógica de upvote
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.thumb_down_outlined),
+                            onPressed: () {
+                              // TODO: Implementar a lógica de downvote
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -92,7 +118,20 @@ class GasStationDetails extends StatelessWidget {
                 ),
               ],
             ),
-            // Added safe area padding for the bottom.
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (gasStation.latitude != null && gasStation.longitude != null) {
+                  _launchMaps(gasStation.latitude!, gasStation.longitude!);
+                }
+              },
+              icon: const Icon(Icons.directions),
+              label: const Text('Rota'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+            // Adicionado preenchimento de área segura para a parte inferior.
             SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
           ],
         ),
