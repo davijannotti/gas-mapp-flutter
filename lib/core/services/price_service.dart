@@ -1,9 +1,16 @@
 import 'dart:convert';
+import 'package:flutter_app/core/models/gas_station.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
+import '../models/price.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/client.dart';
 import '../models/fuel.dart';
+import '../models/client.dart';
+import '../models/gas_station.dart';
 import 'auth_helper.dart';
 
 class PriceService {

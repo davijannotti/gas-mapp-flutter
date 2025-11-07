@@ -67,7 +67,8 @@ class _HomePageState extends State<HomePage> {
 
     if (kIsWeb) {
       await _getLocationByIp();
-    } else {
+    }
+    else {
       await _getDeviceLocation();
     }
   }
@@ -102,7 +103,8 @@ class _HomePageState extends State<HomePage> {
           });
           await _fetchNearbyStations(location);
         }
-      } else {
+      }
+      else {
         _showError("Could not get location from IP address.");
       }
     } catch (e) {
@@ -141,7 +143,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final currentLocation = await location.getLocation();
       if (mounted) {
-        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        final location = LatLng(currentLocation.latitude!, currentLocation.longitude!); 
         setState(() {
           _currentLocation = currentLocation;
           _isLoading = false;
@@ -292,6 +294,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showGasStationDetails(GasStation station) {
+    setState(() {
+      _currentlyDisplayedStation = station; // Set the currently displayed station
+    });
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
