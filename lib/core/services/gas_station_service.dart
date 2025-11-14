@@ -10,7 +10,7 @@ class GasStationService {
 
   Future<List<GasStation>> getGasStations() async {
     // Add headers to the request
-    final response = await http.get(Uri.parse(baseUrl), headers: createAuthHeaders());
+    final response = await http.get(Uri.parse(baseUrl), headers: AuthHelper().createAuthHeaders());
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -23,7 +23,7 @@ class GasStationService {
   Future<List<GasStation>> getNearbyStations(double latitude, double longitude) async {
     final response = await http.get(
       Uri.parse('$baseUrl/nearby?latitude=$latitude&longitude=$longitude&delta=1&timestamp=${DateTime.now().millisecondsSinceEpoch}'),
-      headers: createAuthHeaders(),
+      headers: AuthHelper().createAuthHeaders(),
     );
     debugPrint('Response status: ${response.statusCode}');
     debugPrint('Response body: ${response.body}');
@@ -38,7 +38,7 @@ class GasStationService {
 
   Future<GasStation> getGasStationById(int id) async {
     // Add headers to the request
-    final response = await http.get(Uri.parse('$baseUrl/$id'), headers: createAuthHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/$id'), headers: AuthHelper().createAuthHeaders());
 
     if (response.statusCode == 200) {
       return GasStation.fromJson(jsonDecode(response.body));
@@ -50,7 +50,7 @@ class GasStationService {
   Future<List<GasStation>> getGasStationCheapest(double lat, double log, String fuel_type) async{
     final url = Uri.parse('$baseUrl/cheapest?latitude=$lat&longitude=$log&delta=1&fuelType=$fuel_type');
 
-    final response = await http.get(url, headers: createAuthHeaders());
+    final response = await http.get(url, headers: AuthHelper().createAuthHeaders());
 
     if(response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);

@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_app/core/services/auth_helper.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'auth_helper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/api_config.dart';
 
 
 
 class AuthService {
+
+  final String baseUrl = '${ApiConfig.baseUrl}/auth';
+
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final String baseUrl = 'https://gasmapp-backend-production.up.railway.app/auth';
   final _storage = const FlutterSecureStorage();
 
   Stream<GoogleSignInAccount?> get onCurrentUserChanged => _googleSignIn.onCurrentUserChanged;

@@ -4,84 +4,80 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/evaluation.dart';
 import 'auth_helper.dart';
-import '../models/client.dart';
-import '../models/price.dart';
 
 class EvaluationService {
   final String baseUrl = '${ApiConfig.baseUrl}/evaluations';
 
-  Future<void> createEvaluation({
-    required Client client,
-    required Price price,
-    required bool trust,
-}) async {
-    final body = {
-      'client': client.toJson(),
-      'price': price.toJson(),
-      'trust': trust,
-    };
 
+  Future<Evaluation> createEvaluation(Evaluation evaluation) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: createAuthHeaders(),
-      body: jsonEncode(body),
+      headers: AuthHelper().createAuthHeaders(),
+      body: jsonEncode(evaluation.toJson()),
     );
+
     debugPrint('Response status: ${response.statusCode}');
     debugPrint('Response body: ${response.body}');
 
     if (response.statusCode != 201) {
       throw Exception('Falha ao criar avaliação');
     }
+
+    return Evaluation.fromJson(jsonDecode(response.body));
   }
 
-  Future<Map<String, Map<String, int>>> getEvaluationsbyGasStation(int id) async {
+
+  Future<List<Evaluation>> getEvaluationsByGasStation(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/by-gasstation/$id'),
+      headers: AuthHelper().createAuthHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List<dynamic>;
+      return data.map((json) => Evaluation.fromJson(json)).toList();
+    } else {
+      throw Exception('Falha ao buscar avaliações');
+    }
+  }
+
+
+  Future<List<Evaluation>> getEvaluationsByPrice(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/by-price/$id'),
+      headers: AuthHelper().createAuthHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List<dynamic>;
+      return data.map((json) => Evaluation.fromJson(json)).toList();
+    } else {
+      throw Exception('Falha ao buscar avaliações');
+    }
+  }
+
+  Future<Map<String, Map<String, int>>> getTrustSummaryByGasStation(int id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/trust-by-gasstation/$id'),
-      headers: createAuthHeaders(),
+      headers: AuthHelper().createAuthHeaders(),
     );
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
 
-      final Map<String, Map<String, int>> result = {};
+      final result = <String, Map<String, int>>{};
 
       decoded.forEach((fuelName, rawData) {
-        final data = rawData as Map<String, dynamic>? ?? {};
-        final likes = (data['likes'] as num?)?.toInt() ?? 0;
-        final dislikes = (data['dislikes'] as num?)?.toInt() ?? 0;
-        result[fuelName] = {'likes': likes, 'dislikes': dislikes};
+        final map = rawData as Map<String, dynamic>? ?? {};
+        result[fuelName] = {
+          'likes': (map['likes'] as num?)?.toInt() ?? 0,
+          'dislikes': (map['dislikes'] as num?)?.toInt() ?? 0,
+        };
       });
 
       return result;
     } else {
-      debugPrint('Erro ao buscar avaliações: ${response.statusCode} ${response.body}');
-      throw Exception('Falha ao buscar avaliações');
+      throw Exception('Falha ao buscar resumo de avaliações');
     }
   }
-
-  Future<Map<String, Map<String, int>>> getEvaluationsbyPrice(int id) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/trust-by-price/$id'),
-      headers: createAuthHeaders(),
-    );
-
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-
-      final Map<String, Map<String, int>> result = {};
-
-      decoded.forEach((fuelName, rawData) {
-        final data = rawData as Map<String, dynamic>? ?? {};
-        final likes = (data['likes'] as num?)?.toInt() ?? 0;
-        final dislikes = (data['dislikes'] as num?)?.toInt() ?? 0;
-        result[fuelName] = {'likes': likes, 'dislikes': dislikes};
-      });
-
-      return result;
-    } else {
-      debugPrint('Erro ao buscar avaliações: ${response.statusCode} ${response.body}');
-      throw Exception('Falha ao buscar avaliações');
-    }
-  }
-
 }
