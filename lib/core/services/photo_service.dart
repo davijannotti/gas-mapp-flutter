@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 class PhotoService {
-  final String baseUrl = 'http://local_host:5000/upload'; // AJUSTE AQUI
+  final String baseUrl = 'http://172.18.190.16:5000/upload'; // AJUSTE AQUI
 
   Future<List<dynamic>> uploadPhoto(File image, int stationId) async {
     final uri = Uri.parse('$baseUrl?stationId=$stationId');

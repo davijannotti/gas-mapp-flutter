@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
 import '../../../core/models/client.dart';
@@ -15,9 +16,11 @@ import '../../../core/models/price.dart';
 import '../../../core/services/gas_station_service.dart';
 import '../../../core/services/price_service.dart';
 import '../../../core/services/fuel_service.dart';
+import '../../../core/services/photo_service.dart';
 import '../widgets/gas_station_details.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/price_form_modal.dart';
+import '../widgets/ocr_price_form_modal.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/side_bar.dart';
 
@@ -32,6 +35,7 @@ class _HomePageState extends State<HomePage> {
   final GasStationService _gasStationService = GasStationService();
   final PriceService _priceService = PriceService();
   final FuelService _fuelService = FuelService();
+  final PhotoService _photoService = PhotoService();
 
   final ValueNotifier<List<GasStation>> _gasStationsNotifier = ValueNotifier([]);
 
@@ -264,6 +268,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+
+
+
   Future<void> _showAddPriceForm(GasStation station) {
     return showModalBottomSheet(
       context: context,
@@ -341,13 +348,37 @@ class _HomePageState extends State<HomePage> {
           const SnackBar(content: Text('Enviando foto...')),
         );
         try {
-          // TODO: implementar uploadPhoto no serviço
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Foto enviada com sucesso! (DEMO)'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          final ocrResults = await _photoService.uploadPhoto(File(image.path), stationId);
+          debugPrint('OCR Results: $ocrResults');
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Foto enviada com sucesso!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            if (ocrResults.isNotEmpty) {
+              final GasStation station = _gasStationsNotifier.value.firstWhere((s) => s.id == stationId);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => OcrPriceFormModal(
+                  gasStation: station,
+                  ocrResults: ocrResults,
+                  onSubmitted: () {
+                    if (_currentLocation != null) {
+                      _fetchNearbyStations(LatLng(
+                          _currentLocation!.latitude!,
+                          _currentLocation!.longitude!));
+                    }
+                  },
+                ),
+              );
+            }
+          }
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

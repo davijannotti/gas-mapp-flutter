@@ -8,11 +8,15 @@ class PriceFormModal extends StatefulWidget {
   // Changed stationId to be an int to match the callback and the data model.
   final int stationId;
   final PriceSubmitCallback onSubmit;
+  final String? suggestedFuelName;
+  final double? suggestedPriceValue;
 
   const PriceFormModal({
     super.key,
     required this.stationId,
     required this.onSubmit,
+    this.suggestedFuelName,
+    this.suggestedPriceValue,
   });
 
   @override
@@ -29,9 +33,19 @@ class _PriceFormModalState extends State<PriceFormModal> {
   final List<String> _fuelNames = ['Gasolina', 'Etanol', 'Diesel'];
 
   @override
-  void dispose() {
-    _priceController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    if (widget.suggestedFuelName != null) {
+      final suggested = widget.suggestedFuelName!.toLowerCase();
+      final foundFuel = _fuelNames.firstWhere(
+        (name) => name.toLowerCase() == suggested,
+        orElse: () => _selectedFuelName, // Keep default if not found
+      );
+      _selectedFuelName = foundFuel;
+    }
+    if (widget.suggestedPriceValue != null) {
+      _priceController.text = widget.suggestedPriceValue!.toStringAsFixed(2);
+    }
   }
 
   void _submitForm() {
