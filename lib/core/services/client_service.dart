@@ -11,7 +11,7 @@ class ClientService {
   Future<Client> getClientById(int id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/$id'),
-      headers: createAuthHeaders(),
+      headers: AuthHelper().createAuthHeaders(),
     );
     debugPrint('Response status: ${response.statusCode}');
     debugPrint('Response body: ${response.body}');

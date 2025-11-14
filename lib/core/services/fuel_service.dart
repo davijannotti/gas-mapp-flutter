@@ -13,7 +13,7 @@ class FuelService {
   Future<Fuel> getFuelById(int id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/$id'),
-      headers: createAuthHeaders(),
+      headers: AuthHelper().createAuthHeaders(),
     );
     debugPrint(' get fuel id Response status: ${response.statusCode}');
     debugPrint('Response body: ${response.body}');
@@ -28,7 +28,7 @@ class FuelService {
   Future<Fuel> createFuel(Fuel fuel) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: createAuthHeaders(),
+      headers: AuthHelper().createAuthHeaders(),
       body: json.encode(fuel.toJson()),
     );
     debugPrint('create fuel req body ${json.encode(fuel.toJson())}');
