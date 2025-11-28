@@ -1,88 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import '../../../core/services/auth_service.dart';
-import './google_login_button.dart';
+import '../screens/login_screen.dart';
+import '../screens/register_screen.dart';
 
-class SideBar extends StatefulWidget {
+class SideBar extends StatelessWidget {
   const SideBar({super.key});
 
   @override
-  State<SideBar> createState() => _SideBarState();
-}
-
-class _SideBarState extends State<SideBar> {
-  final AuthService _authService = AuthService();
-  GoogleSignInAccount? _currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    _authService.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
-      setState(() {
-        _currentUser = account;
-      });
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Como os serviços de autenticação serão implementados posteriormente,
+    // exibimos as opções para fazer login ou se registrar.
+    // A visualização pode ser atualizada posteriormente para mostrar um estado de login.
     return Drawer(
-      child: _currentUser != null ? _buildLoggedInView(_currentUser!) : _buildLoggedOutView(),
-    );
-  }
-
-  Widget _buildLoggedInView(GoogleSignInAccount user) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        UserAccountsDrawerHeader(
-          accountName: Text(
-            user.displayName ?? 'Nome do Usuário',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          accountEmail: Text(user.email),
-          currentAccountPicture: GoogleUserCircleAvatar(
-            identity: user,
-          ),
-          decoration: const BoxDecoration(color: Colors.teal),
-        ),
-        ListTile(
-          leading: const Icon(Icons.bar_chart),
-          title: const Text('Estatísticas'),
-          onTap: () {
-            // TODO: Navigate to user statistics screen
-            Navigator.pop(context);
-          },
-        ),
-        const Divider(),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Sair'),
-          onTap: () => _authService.signOut(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoggedOutView() {
-    return Column(
-      children: [
-        const DrawerHeader(
-          decoration: BoxDecoration(color: Colors.teal),
-          child: Center(
-            child: Text(
-              'GasMapp',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Colors.teal),
+            child: Center(
+              child: Text(
+                'GasMapp',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-        GoogleLoginButton(onPressed: () => _authService.signIn()),
-      ],
+          ListTile(
+            leading: const Icon(Icons.login),
+            title: const Text('Login'),
+            onTap: () {
+              Navigator.pop(context); // Fecha o drawer primeiro
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_add),
+            title: const Text('Registrar-se'),
+            onTap: () {
+              Navigator.pop(context); // Fecha o drawer primeiro
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RegisterScreen()),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

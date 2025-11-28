@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/features/map/screens/home_page.dart';
-import '../core/services/auth_helper.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await AuthHelper.loadToken();
+void main() {
   runApp(const MyApp());
 }
 
