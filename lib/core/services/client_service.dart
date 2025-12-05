@@ -22,4 +22,23 @@ class ClientService {
       throw Exception('Cliente não encontrado');
     }
   }
+
+  Future<Client> createClient(Client client) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(client.toJson()),
+    );
+
+    debugPrint('Create Client status: ${response.statusCode}');
+    debugPrint('Create Client body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Client.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Erro ao criar cliente: ${response.body}');
+    }
+  }
+
+
 }
