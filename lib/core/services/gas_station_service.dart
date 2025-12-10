@@ -31,6 +31,8 @@ class GasStationService {
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
       return data.map((json) => GasStation.fromJson(json)).toList();
+    } else if (response.statusCode == 204) {
+      return [];
     } else {
       throw Exception('Failed to load nearby gas stations');
     }

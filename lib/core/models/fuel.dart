@@ -7,6 +7,8 @@ class Fuel {
   final GasStation gasStation;
   final String name;
   final DateTime? date;
+  final int likes;
+  final int dislikes;
   final Price? price;
 
   Fuel({
@@ -15,7 +17,29 @@ class Fuel {
     required this.name,
     this.date,
     this.price,
+    this.likes = 0,
+    this.dislikes = 0,
   });
+
+  Fuel copyWith({
+    int? id,
+    GasStation? gasStation,
+    String? name,
+    DateTime? date,
+    Price? price,
+    int? likes,
+    int? dislikes,
+  }) {
+    return Fuel(
+      id: id ?? this.id,
+      gasStation: gasStation ?? this.gasStation,
+      name: name ?? this.name,
+      date: date ?? this.date,
+      price: price ?? this.price,
+      likes: likes ?? this.likes,
+      dislikes: dislikes ?? this.dislikes,
+    );
+  }
 
   factory Fuel.fromJson(Map<String, dynamic> json) {
     final gasStationData = json['gasStation'];

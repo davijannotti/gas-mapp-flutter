@@ -8,6 +8,7 @@ class GasStation {
   final double? longitude;
   final List<Fuel>? fuel;
 
+
   GasStation({
     this.id,
     this.name,
@@ -15,6 +16,22 @@ class GasStation {
     this.longitude,
     this.fuel,
   });
+
+  GasStation copyWith({
+    int? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    List<Fuel>? fuel,
+  }) {
+    return GasStation(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      fuel: fuel ?? this.fuel,
+    );
+  }
 
   factory GasStation.fromJson(Map<String, dynamic> json) {
     // debugPrint('GasStation.fromJson received: $json'); // Debug print removed

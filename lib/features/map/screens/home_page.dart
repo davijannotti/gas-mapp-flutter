@@ -18,6 +18,8 @@ import '../../../core/services/gas_station_service.dart';
 import '../../../core/services/price_service.dart';
 import '../../../core/services/fuel_service.dart';
 import '../../../core/services/photo_service.dart';
+import '../../../core/services/evaluation_service.dart';
+import '../../../core/models/evaluation.dart';
 import '../widgets/gas_station_details.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/price_form_modal.dart';
@@ -38,6 +40,7 @@ class _HomePageState extends State<HomePage> {
   final FuelService _fuelService = FuelService();
   final PhotoService _photoService = PhotoService();
   final AuthService _authService = AuthService();
+  final EvaluationService _evaluationService = EvaluationService();
 
   final ValueNotifier<List<GasStation>> _gasStationsNotifier = ValueNotifier([]);
 
@@ -281,6 +284,10 @@ class _HomePageState extends State<HomePage> {
       builder: (context) => PriceFormModal(
         stationId: station.id!,
         onSubmit: (int stationId, String fuelName, double priceValue) async {
+          // Optimistic update FIRST
+          _updateStationOptimistically(stationId, fuelName, priceValue);
+          Navigator.of(context).pop();
+
           try {
             final client = await _authService.getMe();
 
@@ -307,26 +314,36 @@ class _HomePageState extends State<HomePage> {
               priceValue: priceValue,
             );
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Preço adicionado com sucesso!'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Preço adicionado com sucesso!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
 
             if (_currentLocation != null) {
               await _fetchNearbyStations(
                 LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
               );
             }
-            Navigator.of(context).pop(); // 👈 fecha o formulário só depois do refresh
           } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Erro ao adicionar preço: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            debugPrint('Erro ao adicionar preço: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erro ao adicionar preço: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              // Optionally revert optimistic update here by re-fetching
+              if (_currentLocation != null) {
+                 _fetchNearbyStations(
+                  LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+                );
+              }
+            }
           }
         },
       ),
@@ -370,11 +387,58 @@ class _HomePageState extends State<HomePage> {
                 builder: (context) => OcrPriceFormModal(
                   gasStation: station,
                   ocrResults: ocrResults,
-                  onSubmitted: () {
-                    if (_currentLocation != null) {
-                      _fetchNearbyStations(LatLng(
-                          _currentLocation!.latitude!,
-                          _currentLocation!.longitude!));
+                  onSubmitted: (Map<String, double> prices) async {
+                    // Optimistic update for each price
+                    prices.forEach((fuelName, priceValue) {
+                       _updateStationOptimistically(stationId, fuelName, priceValue);
+                    });
+                    
+                    // Process API calls in background
+                    try {
+                      final client = await _authService.getMe();
+                      for (var entry in prices.entries) {
+                        final fuelName = entry.key;
+                        final priceValue = entry.value;
+
+                        Fuel? fuel = await _fuelService.getFuelByName(station, fuelName);
+                        if (fuel == null) {
+                          final newFuel = Fuel(
+                            gasStation: station,
+                            name: fuelName.toUpperCase(),
+                          );
+                          fuel = await _fuelService.createFuel(newFuel);
+                        }
+
+                        final completeFuel = Fuel(
+                          id: fuel.id,
+                          name: fuel.name,
+                          gasStation: station,
+                          date: fuel.date,
+                          price: fuel.price,
+                        );
+
+                        await _priceService.createPrice(
+                          fuel: completeFuel,
+                          client: client,
+                          priceValue: priceValue,
+                        );
+                      }
+                      
+                      if (_currentLocation != null) {
+                        await _fetchNearbyStations(LatLng(
+                            _currentLocation!.latitude!,
+                            _currentLocation!.longitude!));
+                      }
+                    } catch (e) {
+                      debugPrint('Erro ao salvar preços do OCR: $e');
+                      if (mounted) {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Erro ao salvar preços: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
@@ -426,7 +490,38 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showGasStationDetails(GasStation station) {
+  void _showGasStationDetails(GasStation station) async {
+    // Fetch trust summary
+    try {
+      final summary = await _evaluationService.getTrustSummaryByGasStation(station.id!);
+      
+      // Update station with trust summary
+      final currentStations = _gasStationsNotifier.value;
+      final stationIndex = currentStations.indexWhere((s) => s.id == station.id);
+      
+      if (stationIndex != -1) {
+        final currentStation = currentStations[stationIndex];
+        final List<Fuel> updatedFuels = List.from(currentStation.fuel ?? []);
+        
+        for (int i = 0; i < updatedFuels.length; i++) {
+          final fuel = updatedFuels[i];
+          if (summary.containsKey(fuel.name)) {
+            updatedFuels[i] = fuel.copyWith(
+              likes: summary[fuel.name]!['likes'],
+              dislikes: summary[fuel.name]!['dislikes'],
+            );
+          }
+        }
+        
+        final updatedStation = currentStation.copyWith(fuel: updatedFuels);
+        final updatedList = List<GasStation>.from(currentStations);
+        updatedList[stationIndex] = updatedStation;
+        _gasStationsNotifier.value = updatedList;
+      }
+    } catch (e) {
+      debugPrint('Error fetching trust summary: $e');
+    }
+
     setState(() {
       _currentlyDisplayedStation = station; // Set the currently displayed station
     });
@@ -449,11 +544,110 @@ class _HomePageState extends State<HomePage> {
                 await _showAddPriceForm(updatedStation);
               },
               onTakePhoto: () => _handlePhotoUpload(updatedStation.id!),
+              onEvaluate: (fuelName, isLike) => _handleEvaluation(updatedStation.id!, fuelName, isLike),
             );
           },
         );
       },
     );
+  }
+
+  void _updateStationOptimistically(int stationId, String fuelName, double priceValue) {
+    final currentStations = _gasStationsNotifier.value;
+    final stationIndex = currentStations.indexWhere((s) => s.id == stationId);
+
+    if (stationIndex != -1) {
+      final station = currentStations[stationIndex];
+      final List<Fuel> updatedFuels = List.from(station.fuel ?? []);
+
+      final fuelIndex = updatedFuels.indexWhere((f) => f.name.toUpperCase() == fuelName.toUpperCase());
+
+      if (fuelIndex != -1) {
+        // Update existing fuel price
+        final existingFuel = updatedFuels[fuelIndex];
+        updatedFuels[fuelIndex] = existingFuel.copyWith(
+          price: Price(
+            fuel: existingFuel,
+            client: Client(id: 0, name: '', email: '', password: ''), // Dummy client
+            price: priceValue,
+          ),
+        );
+      } else {
+        // Add new fuel
+        final newFuel = Fuel(
+          gasStation: station,
+          name: fuelName.toUpperCase(),
+          price: Price(
+            fuel: Fuel(gasStation: station, name: fuelName.toUpperCase()), // Circular ref workaround
+            client: Client(id: 0, name: '', email: '', password: ''),
+            price: priceValue,
+          ),
+        );
+        updatedFuels.add(newFuel);
+      }
+
+      final updatedStation = station.copyWith(fuel: updatedFuels);
+      final updatedList = List<GasStation>.from(currentStations);
+      updatedList[stationIndex] = updatedStation;
+
+      _gasStationsNotifier.value = updatedList;
+
+      // Update currently displayed station if it's the same
+      if (_currentlyDisplayedStation?.id == stationId) {
+         setState(() {
+           _currentlyDisplayedStation = updatedStation;
+         });
+      }
+    }
+  }
+
+  Future<void> _handleEvaluation(int stationId, String fuelName, bool trust) async {
+    try {
+      final client = await _authService.getMe();
+      final currentStations = _gasStationsNotifier.value;
+      final stationIndex = currentStations.indexWhere((s) => s.id == stationId);
+
+      if (stationIndex != -1) {
+        final station = currentStations[stationIndex];
+        final List<Fuel> updatedFuels = List.from(station.fuel ?? []);
+        final fuelIndex = updatedFuels.indexWhere((f) => f.name.toUpperCase() == fuelName.toUpperCase());
+
+        if (fuelIndex != -1) {
+          final existingFuel = updatedFuels[fuelIndex];
+          
+          // Optimistic update
+          updatedFuels[fuelIndex] = existingFuel.copyWith(
+            likes: trust ? existingFuel.likes + 1 : existingFuel.likes,
+            dislikes: !trust ? existingFuel.dislikes + 1 : existingFuel.dislikes,
+          );
+
+          final updatedStation = station.copyWith(fuel: updatedFuels);
+          final updatedList = List<GasStation>.from(currentStations);
+          updatedList[stationIndex] = updatedStation;
+
+          _gasStationsNotifier.value = updatedList;
+
+          if (_currentlyDisplayedStation?.id == stationId) {
+            setState(() {
+              _currentlyDisplayedStation = updatedStation;
+            });
+          }
+
+          // Send to backend
+          if (existingFuel.price != null) {
+            final evaluation = Evaluation(
+              price: existingFuel.price!,
+              trust: trust,
+              client: client,
+            );
+            await _evaluationService.createEvaluation(evaluation);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error creating evaluation: $e');
+      // Revert optimistic update if needed (omitted for simplicity)
+    }
   }
 
   @override

@@ -10,7 +10,7 @@ import '../../../core/services/price_service.dart';
 class OcrPriceFormModal extends StatefulWidget {
   final GasStation gasStation;
   final List<dynamic> ocrResults;
-  final Function onSubmitted;
+  final Function(Map<String, double>) onSubmitted;
 
   const OcrPriceFormModal({
     super.key,
@@ -56,49 +56,19 @@ class _OcrPriceFormModalState extends State<OcrPriceFormModal> {
       );
 
       try {
-        final client = await _authService.getMe();
+        final Map<String, double> submittedPrices = {};
         for (var entry in _priceControllers.entries) {
-          final fuelName = entry.key;
-          final priceValue = double.tryParse(entry.value.text.replaceAll(',', '.'));
-
-          if (priceValue != null) {
-            Fuel? fuel = await _fuelService.getFuelByName(widget.gasStation, fuelName);
-            if (fuel == null) {
-              final newFuel = Fuel(
-                gasStation: widget.gasStation,
-                name: fuelName.toUpperCase(),
-              );
-              fuel = await _fuelService.createFuel(newFuel);
-            }
-
-            final completeFuel = Fuel(
-              id: fuel.id,
-              name: fuel.name,
-              gasStation: widget.gasStation,
-              date: fuel.date,
-              price: fuel.price,
-            );
-
-            await _priceService.createPrice(
-              fuel: completeFuel,
-              client: client,
-              priceValue: priceValue,
-            );
-          }
+             final priceValue = double.tryParse(entry.value.text.replaceAll(',', '.'));
+             if (priceValue != null) {
+               submittedPrices[entry.key] = priceValue;
+             }
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Preços adicionados com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        widget.onSubmitted();
+        widget.onSubmitted(submittedPrices);
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao adicionar preços: $e'),
+            content: Text('Erro ao processar preços: $e'),
             backgroundColor: Colors.red,
           ),
         );

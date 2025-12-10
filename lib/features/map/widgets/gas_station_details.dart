@@ -7,12 +7,14 @@ class GasStationDetails extends StatelessWidget {
   final GasStation gasStation;
   final VoidCallback onAddPrice;
   final VoidCallback onTakePhoto;
+  final Function(String fuelName, bool isLike) onEvaluate;
 
   const GasStationDetails({
     super.key,
     required this.gasStation,
     required this.onAddPrice,
     required this.onTakePhoto,
+    required this.onEvaluate,
   });
 
   void _launchMaps(double lat, double lng) async {
@@ -74,17 +76,29 @@ class GasStationDetails extends StatelessWidget {
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.w500),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.thumb_up_outlined),
-                            onPressed: () {
-                              // TODO: Implementar a lógica de upvote
-                            },
+                          const SizedBox(width: 8),
+                          Column(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.thumb_up_outlined, size: 20),
+                                onPressed: () => onEvaluate(fuel.name, true),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              Text('${fuel.likes}', style: const TextStyle(fontSize: 12)),
+                            ],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.thumb_down_outlined),
-                            onPressed: () {
-                              // TODO: Implementar a lógica de downvote
-                            },
+                          const SizedBox(width: 8),
+                          Column(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.thumb_down_outlined, size: 20),
+                                onPressed: () => onEvaluate(fuel.name, false),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              Text('${fuel.dislikes}', style: const TextStyle(fontSize: 12)),
+                            ],
                           ),
                         ],
                       ),

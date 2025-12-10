@@ -8,6 +8,7 @@ import 'auth_helper.dart';
 class AuthService {
   final String baseUrl = '${ApiConfig.baseUrl}/auth';
 
+
   Future<Client> getMe() async {
     final response = await http.get(
       Uri.parse('$baseUrl/me'),
