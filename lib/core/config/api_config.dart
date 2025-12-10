@@ -1,3 +1,3 @@
 class ApiConfig {
-  static const String baseUrl = 'https://gasmapp-backend-production-4928.up.railway.app';
+  static const String baseUrl = 'http://192.168.0.111:8080';
 }

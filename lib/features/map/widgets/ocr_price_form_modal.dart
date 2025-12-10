@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/models/client.dart';
 import '../../../core/models/fuel.dart';
+import 'package:flutter_app/core/services/auth_service.dart';
 import '../../../core/models/gas_station.dart';
 import '../../../core/services/fuel_service.dart';
 import '../../../core/services/price_service.dart';
@@ -26,6 +27,7 @@ class _OcrPriceFormModalState extends State<OcrPriceFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _priceService = PriceService();
   final _fuelService = FuelService();
+  final _authService = AuthService();
 
   late final Map<String, TextEditingController> _priceControllers;
 
@@ -54,13 +56,12 @@ class _OcrPriceFormModalState extends State<OcrPriceFormModal> {
       );
 
       try {
+        final client = await _authService.getMe();
         for (var entry in _priceControllers.entries) {
           final fuelName = entry.key;
           final priceValue = double.tryParse(entry.value.text.replaceAll(',', '.'));
 
           if (priceValue != null) {
-            var client = Client(id: 1);
-            
             Fuel? fuel = await _fuelService.getFuelByName(widget.gasStation, fuelName);
             if (fuel == null) {
               final newFuel = Fuel(

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide SearchBar;
 import '../../../core/models/client.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_app/core/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   final PriceService _priceService = PriceService();
   final FuelService _fuelService = FuelService();
   final PhotoService _photoService = PhotoService();
+  final AuthService _authService = AuthService();
 
   final ValueNotifier<List<GasStation>> _gasStationsNotifier = ValueNotifier([]);
 
@@ -280,7 +282,7 @@ class _HomePageState extends State<HomePage> {
         stationId: station.id!,
         onSubmit: (int stationId, String fuelName, double priceValue) async {
           try {
-            var client = Client(id: 1);
+            final client = await _authService.getMe();
 
             Fuel? fuel = await _fuelService.getFuelByName(station, fuelName);
             if (fuel == null) {
